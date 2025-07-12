@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // **IMPORTANTE**: Reemplaza esta URL con la URL REAL de tu servicio de licencias en OnRender.
     // Una vez desplegado tu generador de licencias, OnRender te dará una URL (ej: https://mi-generador-licencias-abcde.onrender.com)
-    const LICENSE_SERVER_URL = 'https://mi-ebook-licencias-api.onrender.com';
+    const LICENSE_SERVER_URL = 'https://mi-ebook-licencias-api.onrender.com/validate-license';
 
     // Función para mostrar mensajes
     const showMessage = (msg, type = 'error') => {
