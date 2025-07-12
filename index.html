@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebook de Nutrición Saludable</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div id="license-form-container">
+        <h1>¡Bienvenido a tu Ebook de Nutrición!</h1>
+        <p>Para acceder al contenido, por favor, introduce tu clave de licencia.</p>
+        <div class="license-input-group">
+            <input type="text" id="license-input" placeholder="Tu clave de licencia aquí" aria-label="Clave de licencia">
+            <button id="validate-license-btn">Acceder Ebook</button>
+        </div>
+        <p id="license-message" class="message"></p>
+    </div>
+
+    <div id="ebook-container" class="hidden">
+        <header>
+            <h1>Ebook de Nutrición: Guía Esencial para una Vida Saludable</h1>
+            <p class="subtitle">Descubre los secretos de una alimentación equilibrada y llena de energía.</p>
+        </header>
+
+        <section id="introduction" class="chapter">
+            <h2>1. Introducción a la Nutrición</h2>
+            <img src="images/intro_nutricion.webp" alt="Imagen de alimentos saludables" class="chapter-image">
+            <p>La nutrición es la base de nuestra salud y bienestar. Comprender cómo los alimentos impactan nuestro cuerpo es fundamental para vivir una vida plena y energética. Este ebook te guiará a través de los principios fundamentales de una alimentación saludable, desmitificando conceptos y ofreciéndote herramientas prácticas.</p>
+            <p>Aprenderás sobre los macronutrientes esenciales (carbohidratos, proteínas y grasas), los micronutrientes (vitaminas y minerales) y cómo combinarlos para optimizar tu salud. ¡Prepárate para transformar tu relación con la comida!</p>
+        </section>
+
+        <section id="macronutrients" class="chapter">
+            <h2>2. Macronutrientes: Los Pilares de tu Dieta</h2>
+            <img src="images/macronutrientes.webp" alt="Plato con proteínas, carbohidratos y grasas" class="chapter-image">
+            <h3>2.1. Carbohidratos: Energía Pura</h3>
+            <p>Los carbohidratos son la principal fuente de energía de nuestro cuerpo. Se dividen en complejos (cereales integrales, legumbres) y simples (azúcares, frutas). Es crucial priorizar los carbohidratos complejos por su aporte de fibra y liberación sostenida de energía.</p>
+            <h3>2.2. Proteínas: Construyendo y Reparando</h3>
+            <p>Las proteínas son esenciales para el crecimiento, reparación y mantenimiento de tejidos. Fuentes incluyen carnes magras, pescado, huevos, lácteos, legumbres y frutos secos. Una ingesta adecuada es vital para la masa muscular y muchas funciones corporales.</p>
+            <h3>2.3. Grasas: Esenciales para la Salud</h3>
+            <p>Aunque a menudo malinterpretadas, las grasas son cruciales para la absorción de vitaminas, la producción de hormonas y la salud cerebral. Opta por grasas saludables como las presentes en el aguacate, frutos secos, aceite de oliva y pescados grasos.</p>
+        </section>
+
+        <section id="micronutrients" class="chapter">
+            <h2>3. Micronutrientes: Vitaminas y Minerales</h2>
+            <img src="images/micronutrientes.webp" alt="Variedad de frutas y verduras coloridas" class="chapter-image">
+            <p>Las vitaminas y minerales, aunque necesarios en pequeñas cantidades, son vitales para miles de procesos metabólicos en nuestro cuerpo. Una dieta variada y rica en frutas, verduras y alimentos integrales asegura un buen aporte de estos.</p>
+            <ul>
+                <li>**Vitaminas:** Ayudan a convertir los alimentos en energía, fortalecen el sistema inmune, y apoyan la salud ocular y de la piel.</li>
+                <li>**Minerales:** Fundamentales para la salud ósea, el equilibrio de líquidos, la función nerviosa y la producción de glóbulos rojos.</li>
+            </ul>
+        </section>
+
+        <section id="hydration" class="chapter">
+            <h2>4. La Importancia de la Hidratación</h2>
+            <img src="images/hidratacion.webp" alt="Vaso de agua refrescante" class="chapter-image">
+            <p>El agua es el componente más abundante de nuestro cuerpo y es esencial para la vida. Participa en la digestión, absorción, transporte de nutrientes y regulación de la temperatura corporal. Se recomienda beber al menos 2 litros de agua al día, aunque las necesidades varían según la actividad física y el clima.</p>
+        </section>
+
+        <section id="meal_planning" class="chapter">
+            <h2>5. Planificación de Comidas y Hábitos Saludables</h2>
+            <img src="images/meal_prep.webp" alt="Contenedores de comida preparada" class="chapter-image">
+            <p>La clave de una nutrición exitosa radica en la planificación. Preparar tus comidas con antelación, elegir opciones saludables fuera de casa y mantener un equilibrio en tu plato son hábitos que transformarán tu salud.</p>
+            <ul>
+                <li>**Desayuno:** No te lo saltes, es el combustible para empezar el día.</li>
+                <li>**Almuerzo y Cena:** Equilibra proteínas, carbohidratos complejos y una buena porción de vegetales.</li>
+                <li>**Snacks:** Opta por frutas, yogur, frutos secos o vegetales.</li>
+            </ul>
+            <p>Recuerda que la moderación y la variedad son fundamentales. Disfruta de la comida y escucha a tu cuerpo.</p>
+        </section>
+
+        <footer>
+            <p>&copy; 2025 Ebook de Nutrición Saludable. Todos los derechos reservados.</p>
+            <p>Este material está protegido por derechos de autor. Prohibida su copia o distribución sin licencia.</p>
+        </footer>
+    </div>
+
+    <script src="security.js"></script>
+    <script src="licensing.js"></script>
+</body>
+</html>
