@@ -492,65 +492,73 @@
             color: var(--text-color);
         }
 
-        /* --- ESTILOS PARA EL BOTÓN DE WHATSAPP (Ajustado para ver el logo siempre) --- */
+        /* --- ESTILOS PARA EL BOTÓN DE WHATSAPP (MODIFICADO PARA ASEGURAR VISIBILIDAD) --- */
         .whatsapp-button {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            z-index: 1000; /* Asegura que esté por encima de casi todo */
+            z-index: 1000;
             display: flex;
             align-items: center;
-            background-color: #25D366; /* Color de WhatsApp */
+            background-color: #25D366;
             color: white;
             padding: 10px 15px;
-            border-radius: 50px; /* Borde ovalado */
+            border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.4s ease-in-out; /* Transición para el efecto de expansión */
-            text-decoration: none; /* Quitar subrayado del enlace */
-            overflow: hidden; /* Oculta el texto hasta que se expanda */
-            width: 60px; /* Ancho inicial del botón (solo el logo) */
-            height: 60px; /* Alto inicial del botón */
-            justify-content: center; /* Centra el logo cuando está estático */
+            transition: all 0.4s ease-in-out;
+            text-decoration: none;
+            /* El cambio clave: quitamos overflow: hidden; en el estado por defecto */
+            /* width y height iniciales para mostrar solo el icono */
+            width: 60px;
+            height: 60px;
+            justify-content: center; /* Centra el icono */
         }
 
         .whatsapp-button:hover {
-            width: 250px; /* Ancho expandido (ajusta si el texto es más largo) */
-            background-color: #1DA851; /* Un poco más oscuro al pasar el ratón */
+            width: 250px; /* Ancho al expandirse para mostrar el texto */
+            background-color: #1DA851;
             padding: 10px 20px; /* Ajusta el padding para el texto y el icono */
             justify-content: flex-start; /* Alinea los elementos a la izquierda al expandir */
-            transform: translateY(-3px); /* Pequeño efecto de elevación al pasar el ratón */
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada al pasar el ratón */
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            /* Asegúrate de que el overflow esté visible cuando se expande si se aplica en el hover */
+            overflow: hidden; /* Esto es para que el texto se oculte y aparezca */
         }
 
         .whatsapp-button .whatsapp-icon {
-            font-size: 30px; /* Tamaño del icono de WhatsApp */
-            flex-shrink: 0; /* Evita que el icono se encoja */
-            /* El margen se aplica solo en hover */
-            margin-right: 0; 
+            font-size: 30px;
+            flex-shrink: 0;
+            margin-right: 0;
             margin-left: 0;
-            /* Agregamos una pequeña transición para que el movimiento sea suave */
-            transition: margin 0.4s ease-in-out; 
+            transition: margin 0.4s ease-in-out;
+            opacity: 1; /* Aseguramos que el icono siempre tenga opacidad 1 */
+            transform: translateX(0); /* Aseguramos que el icono no esté desplazado inicialmente */
         }
 
         .whatsapp-button:hover .whatsapp-icon {
             margin-right: 10px; /* Espacio entre el icono y el texto al expandir */
-            margin-left: 5px; /* Ajuste para centrar visualmente el icono al inicio de la expansión */
+            margin-left: 5px;
         }
 
         .whatsapp-button .whatsapp-text {
-            white-space: nowrap; /* Evita que el texto se rompa en varias líneas */
+            white-space: nowrap;
             opacity: 0; /* Oculto por defecto */
-            transform: translateX(20px); /* Ligeramente desplazado para el efecto de entrada */
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            transition-delay: 0.1s; /* Retraso para que aparezca después de la expansión del botón */
-            font-size: 1em; /* Tamaño de fuente del texto */
+            /* Eliminamos el translateX inicial aquí para evitar problemas */
+            transition: opacity 0.3s ease-in-out; /* Simplificamos la transición */
+            transition-delay: 0.1s;
+            font-size: 1em;
             font-weight: 600;
+            /* Usamos max-width para controlar la aparición sin translateX */
+            max-width: 0; /* Inicialmente no ocupa ancho */
+            overflow: hidden; /* Asegura que no se vea el texto fuera */
         }
 
         .whatsapp-button:hover .whatsapp-text {
             opacity: 1; /* Mostrar al pasar el ratón */
-            transform: translateX(0); /* Vuelve a su posición normal */
+            max-width: 180px; /* Un ancho lo suficientemente grande para el texto */
+            transition: opacity 0.3s ease-in-out, max-width 0.4s ease-in-out; /* Transición para la aparición del texto */
+            transition-delay: 0.1s;
         }
 
 
@@ -630,11 +638,11 @@
             .whatsapp-button .whatsapp-text {
                 font-size: 0.9em;
                 opacity: 0; /* Oculto por defecto en móvil también */
-                transform: translateX(20px);
+                max-width: 0; /* Inicialmente sin ancho */
             }
             .whatsapp-button:hover .whatsapp-text {
                 opacity: 1; /* Mostrar al pasar el ratón en móvil */
-                transform: translateX(0);
+                max-width: 150px; /* Ancho para el texto en móvil */
             }
         }
     </style>
@@ -642,7 +650,8 @@
 <body>
     <div id="splashScreen">
         <div class="spinner"></div>
-        <p id="splashMessage">El ebook está siendo preparado...</p> </div>
+        <p id="splashMessage">El ebook está siendo preparado...</p>
+    </div>
 
     <div class="access-container" id="accessContainer">
         <h1>Accede a tu Ebook</h1>
@@ -951,15 +960,11 @@
 
         // Al cargar la página, ocultar el formulario y mostrar la pantalla de carga
         window.addEventListener('load', () => {
-            // Modificación: Actualizar el mensaje de carga en el splash screen
             splashMessage.textContent = 'El ebook está siendo preparado...';
             
-            // Opcional: Podrías mantener el spinner y el mensaje por un tiempo mínimo para el efecto
             setTimeout(() => {
                 splashScreen.classList.add('hidden');
-                // Después de ocultar el splash screen, el access-container será visible por defecto
-                // si no tiene la clase 'hidden' inicial. Lo hemos manejado con la animación `fadeInScale`.
-            }, 1000); // Oculta el splash screen después de 1 segundo
+            }, 1000);
         });
 
     </script>
