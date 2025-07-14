@@ -679,12 +679,76 @@
                 max-width: 150px; /* Aumentado un poco más para móviles */
             }
         }
+
+        /* --- Estilos para la Pantalla de Mantenimiento --- */
+        #maintenanceScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0; /* Fondo similar al del server.js */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 90; /* Por debajo de splash, por encima de todo lo demás */
+            text-align: center;
+            display: none; /* Inicialmente oculto */
+        }
+
+        #maintenanceScreen .maintenance-container {
+            max-width: 700px;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 2px solid #ffcc00; /* Borde amarillo como en server.js */
+        }
+
+        #maintenanceScreen .maintenance-gear {
+            font-size: 150px;
+            display: inline-block;
+            animation: spin 2s linear infinite; /* Reutiliza el keyframe spin existente */
+            margin-bottom: 20px;
+        }
+
+        #maintenanceScreen .maintenance-message {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e65100; /* Naranja oscuro */
+            margin-bottom: 25px;
+        }
+
+        #maintenanceScreen .maintenance-warning-emoji {
+            font-size: 30px;
+            vertical-align: middle;
+            margin: 0 10px;
+        }
+
+        #maintenanceScreen p {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 15px; /* Ajuste para espacio entre párrafos */
+        }
     </style>
 </head>
 <body>
     <div id="splashScreen">
         <div class="spinner"></div>
         <p id="splashMessage">Cargando contenido...</p>
+    </div>
+
+    <div id="maintenanceScreen">
+        <div class="maintenance-container">
+            <div class="maintenance-gear">⚙️</div>
+            <div class="maintenance-message">
+                <span class="maintenance-warning-emoji">⚠️</span> ¡Web en Mantenimiento! <span class="maintenance-warning-emoji">⚠️</span>
+            </div>
+            <p>Estamos realizando actualizaciones importantes para mejorar tu experiencia.</p>
+            <p>Disculpa las molestias, estaremos de vuelta pronto.</p>
+        </div>
     </div>
 
     <div class="access-container" id="accessContainer">
@@ -774,7 +838,8 @@
         const accessContainer = document.getElementById('accessContainer');
         const splashScreen = document.getElementById('splashScreen');
         const splashMessage = document.getElementById('splashMessage');
-        
+        const maintenanceScreen = document.getElementById('maintenanceScreen'); // Nuevo elemento
+
         const ebookPages = document.querySelectorAll('.ebook-page');
         const prevPageBtn = document.getElementById('prevPageBtn');
         const nextPageBtn = document.getElementById('nextPageBtn');
@@ -1029,6 +1094,7 @@
         const checkServerStatus = async () => {
             splashScreen.classList.remove('hidden'); 
             accessContainer.classList.remove('show'); 
+            maintenanceScreen.style.display = 'none'; // Asegúrate de que la pantalla de mantenimiento esté oculta al inicio
 
             // Mensaje 1: Cargando contenido
             splashMessage.textContent = 'Cargando contenido...';
@@ -1045,16 +1111,25 @@
             try {
                 const response = await fetch(HEALTH_CHECK_URL, { signal: AbortSignal.timeout(7000) }); // Timeout de 7 segundos
 
-                if (response.ok) {
+                if (response.status === 503) { // Servidor en modo de mantenimiento
+                    console.log('Servidor en modo de mantenimiento.');
+                    splashScreen.classList.add('hidden');
+                    accessContainer.classList.add('hidden');
+                    maintenanceScreen.style.display = 'flex'; // Muestra la pantalla de mantenimiento
+                    document.title = 'Web en Mantenimiento'; // Cambia el título de la página
+                    // No reintentes automáticamente en modo mantenimiento, espera a que el usuario refresque.
+                } else if (response.ok) { // Servidor activo y no en mantenimiento
                     console.log('Servidor de licencias activo.');
                     splashMessage.textContent = 'Servidor conectado. ¡Bienvenido!';
                     await new Promise(resolve => setTimeout(resolve, 1000)); // Pequeño retraso final
                     accessContainer.classList.add('show'); 
                     splashScreen.classList.add('hidden'); 
+                    maintenanceScreen.style.display = 'none'; // Asegúrate de que esté oculta
+                    document.title = 'Ebook - Acceso con Licencia'; // Restaura el título original
                 } else {
                     // Si el servidor responde pero con un error (ej. 500)
                     console.error(`Servidor respondió con estado: ${response.status}. Reintentando...`);
-                    splashMessage.textContent = `Error de conexión. Reintentando...`;
+                    splashMessage.textContent = `Error de conexión (${response.status}). Reintentando...`;
                     setTimeout(checkServerStatus, 5000); // Reintenta después de 5 segundos
                 }
             } catch (error) {
