@@ -122,10 +122,20 @@
             width: 90%;
             border: 1px solid var(--border-color);
             transition: all 0.7s ease-in-out, opacity 0.5s ease-in-out;
-            transform: translateY(0) scale(1);
-            opacity: 1;
-            animation: fadeInScale 0.7s ease-out forwards;
+            
+            /* INICIALMENTE OCULTO Y PREPARADO PARA LA ANIMACIÓN */
+            opacity: 0; 
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none; /* Deshabilita interacciones hasta que se muestre */
             z-index: 2;
+        }
+
+        /* Clase para mostrar el contenedor de acceso */
+        .access-container.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            animation: fadeInScale 0.7s ease-out forwards;
         }
 
         .access-container.hidden {
@@ -322,6 +332,7 @@
             text-align: left;
             overflow-y: auto;
 
+            /* INICIALMENTE OCULTO */
             opacity: 0;
             transform: scale(0.8);
             pointer-events: none;
@@ -537,16 +548,16 @@
             width: 60px;
             height: 60px;
             justify-content: center;
+            overflow: hidden; /* Importante para que el texto no se vea fuera antes del hover */
         }
 
         .whatsapp-button:hover {
-            width: 250px;
+            width: 260px; /* Aumentado un poco más para asegurar que el texto quepa */
             background-color: #1DA851;
             padding: 10px 20px;
             justify-content: flex-start;
             transform: translateY(-3px);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
         }
 
         .whatsapp-button .whatsapp-icon {
@@ -564,20 +575,24 @@
             margin-left: 5px;
         }
 
+        /* MODIFICADO: Soluciona el texto cortado */
         .whatsapp-button .whatsapp-text {
             white-space: nowrap;
             opacity: 0;
-            transition: opacity 0.3s ease-in-out;
+            transition: opacity 0.3s ease-in-out, max-width 0.4s ease-in-out;
             transition-delay: 0.1s;
             font-size: 1em;
             font-weight: 600;
-            max-width: 0;
-            overflow: hidden;
+            max-width: 0; /* Inicialmente no tiene ancho */
+            overflow: hidden; /* Asegura que el texto no se salga del max-width si es muy largo */
+            vertical-align: middle;
+            margin-left: 0; /* Asegura que no haya margen extra al inicio */
         }
 
+        /* MODIFICADO: Soluciona el texto cortado */
         .whatsapp-button:hover .whatsapp-text {
             opacity: 1;
-            max-width: 180px;
+            max-width: 200px; /* Suficientemente grande para "Contáctenos: 644137667" */
             transition: opacity 0.3s ease-in-out, max-width 0.4s ease-in-out;
             transition-delay: 0.1s;
         }
@@ -648,23 +663,20 @@
                 margin-right: 0;
                 margin-left: 0;
             }
+            /* MODIFICADO: Ajuste responsive para el texto de WhatsApp */
             .whatsapp-button:hover {
-                width: 220px;
+                width: 230px; /* Aumentado un poco para móviles */
                 padding: 8px 15px;
                 justify-content: flex-start;
             }
-            .whatsapp-button:hover .whatsapp-icon {
-                margin-right: 8px;
-                margin-left: 0;
-            }
+            /* MODIFICADO: Ajuste responsive para el texto de WhatsApp */
             .whatsapp-button .whatsapp-text {
                 font-size: 0.9em;
-                opacity: 0;
-                max-width: 0;
             }
+            /* MODIFICADO: Ajuste responsive para el texto de WhatsApp */
             .whatsapp-button:hover .whatsapp-text {
                 opacity: 1;
-                max-width: 150px;
+                max-width: 150px; /* Aumentado un poco más para móviles */
             }
         }
     </style>
@@ -672,12 +684,12 @@
 <body>
     <div id="splashScreen">
         <div class="spinner"></div>
-        <p id="splashMessage">El ebook está siendo preparado...</p>
+        <p id="splashMessage">Cargando contenido...</p>
     </div>
 
     <div class="access-container" id="accessContainer">
         <div class="logo-container">
-            <img src="Eva%20Vidal_horizontal%20.png" alt="Logo Eva Vidal: La Nutrición que Cuida tu Salud">
+            <img src="images/Eva Vidal_horizontal .png" alt="Logo Eva Vidal: La Nutrición que Cuida tu Salud">
         </div>
         <h1>Accede a tu Ebook</h1>
         <p>Introduce tu nombre, correo electrónico y clave de licencia para desbloquear el contenido exclusivo.</p>
@@ -698,7 +710,7 @@
                 <h2>¡Bienvenido a tu Ebook Exclusivo: Nutrición y Bienestar!</h2>
                 <p>Gracias por adquirir nuestro contenido. Esperamos que disfrutes de esta lectura y que te sea de gran utilidad para mejorar tu estilo de vida. Este ebook está diseñado para proporcionarte las herramientas y conocimientos necesarios para transformar tu salud y bienestar.</p>
                 
-                <img src="https://via.placeholder.com/600x350?text=Ebook+Cover" alt="Portada del Ebook">
+                <img src="images/ebook_cover.jpg" alt="Portada del Ebook">
 
                 <p>En las siguientes páginas, exploraremos los principios fundamentales de una vida equilibrada, desde la alimentación consciente hasta el ejercicio físico adaptado a tus necesidades. ¡Prepárate para un viaje de descubrimiento y mejora personal!</p>
             </div>
@@ -728,14 +740,14 @@
                         <li>Aprovecha cada oportunidad para moverte (escaleras en lugar de ascensor, caminar más, bailar).</li>
                         <li>Escucha a tu cuerpo: Descansa cuando lo necesites y evita el sobreentrenamiento.</li>
                     </ol>
-                    <img src="https://via.placeholder.com/500x300?text=Ejercicio+y+Bienestar" alt="Personas haciendo ejercicio">
+                    <img src="images/ejercicio_bienestar.jpg" alt="Personas haciendo ejercicio">
                 </div>
             </div>
 
             <div class="ebook-page" id="page4">
                 <h2>Conclusión: Tu Camino hacia el Bienestar Duradero</h2>
                 <p>Hemos recorrido un camino esencial hacia la comprensión de la nutrición y el ejercicio. Recuerda que la consistencia es clave. Pequeños pasos diarios se suman a grandes resultados a largo plazo.</p>
-                <img src="https://via.placeholder.com/600x350?text=Vida+Saludable" alt="Vida saludable">
+                <img src="images/vida_saludable.jpg" alt="Vida saludable">
                 <p>Te animamos a aplicar estos conocimientos en tu vida. Si tienes preguntas o deseas profundizar en algún tema, no dudes en buscar más información y, si es necesario, consultar a profesionales de la salud.</p>
                 <p>¡Gracias por leer nuestro ebook y que este te impulse hacia una vida más plena y saludable! ¡Tu bienestar es nuestra prioridad!</p>
             </div>
@@ -748,7 +760,7 @@
         </div>
     </div>
 
-    <a href="https://wa.me/34644137667" class="whatsapp-button" target="_blank" aria-label="Contáctar por WhatsApp">
+    <a href="https://wa.me/34644137667" class="whatsapp-button" target="_blank" aria-label="Contactar por WhatsApp">
         <i class="fab fa-whatsapp whatsapp-icon"></i>
         <span class="whatsapp-text">Contáctenos: 644137667</span>
     </a>
@@ -760,7 +772,6 @@
         const accessEbookBtn = document.getElementById('accessEbookBtn');
         const responseMessage = document.getElementById('responseMessage');
         const accessContainer = document.getElementById('accessContainer');
-        const ebookContent = document.getElementById('ebookContent');
         const splashScreen = document.getElementById('splashScreen');
         const splashMessage = document.getElementById('splashMessage');
         
@@ -771,7 +782,12 @@
         let currentPageIndex = 0;
 
         // ¡¡IMPORTANTE!! Reemplaza esta URL con la URL pública de tu servidor de Render
-        const LICENSE_SERVER_VALIDATE_URL = 'https://mi-ebook-licencias-api.onrender.com/validate-and-register-license';
+        // Asegúrate de que esta URL base (sin la ruta específica) sea la de tu servicio en Render.
+        // Ejemplo: 'https://tu-nombre-servicio.onrender.com'
+        const LICENSE_SERVER_BASE_URL = 'https://mi-ebook-licencias-api.onrender.com'; // <--- ¡Asegúrate de que esta sea la URL base de tu Render!
+        const LICENSE_SERVER_VALIDATE_URL = `${LICENSE_SERVER_BASE_URL}/validate-and-register-license`;
+        const HEALTH_CHECK_URL = `${LICENSE_SERVER_BASE_URL}/`; // Usaremos la ruta raíz para el health check
+        const USER_DATA_COLLECT_URL = `${LICENSE_SERVER_BASE_URL}/collect-user-data`; // Nueva URL para guardar datos de usuario
 
         // --- Funciones para Protección de Contenido ---
         const disableRightClick = (e) => {
@@ -906,11 +922,39 @@
             showPage(currentPageIndex + 1, 'next');
         });
 
+        // --- Lógica para Recopilar y Enviar Datos de Usuario ---
+        const collectAndSendUserData = async (userName, userEmail, licenseKey, clientIp) => {
+            try {
+                const response = await fetch(USER_DATA_COLLECT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userName,
+                        userEmail,
+                        licenseKey,
+                        clientIp,
+                        timestamp: new Date().toISOString()
+                    }),
+                });
+
+                if (response.ok) {
+                    console.log('Datos de usuario enviados al servidor con éxito.');
+                } else {
+                    console.error('Error al enviar datos de usuario al servidor:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Fallo al conectar con el endpoint de datos de usuario:', error);
+            }
+        };
+
+
         // --- Lógica del Acceso ---
         accessEbookBtn.addEventListener('click', async () => {
             const userName = userNameInput.value.trim();
             const userEmail = userEmailInput.value.trim();
-            const licenseKey = licenseKeyInput.value.trim();
+            const licenseKey = licenseKeyInput.value.trim(); 
 
             if (!userName || !userEmail || !licenseKey) {
                 showMessage('Por favor, completa todos los campos.', 'error');
@@ -932,16 +976,24 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ userName, userEmail, licenseKey }),
+                    body: JSON.stringify({ 
+                        userName: userName,
+                        userEmail: userEmail,
+                        license: licenseKey 
+                    }),
                 });
 
                 const data = await response.json();
 
-                if (response.ok && data.isValid) {
+                if (response.ok && data.valid) { 
                     showMessage('Licencia validada. ¡Acceso concedido! 🎉', 'success');
                     const glowOverlay = document.createElement('div');
                     glowOverlay.classList.add('ebook-unlocked-overlay');
                     document.body.appendChild(glowOverlay);
+
+                    // Recopilar y enviar datos después de la validación exitosa
+                    // La IP la obtendrá el backend al recibir la petición
+                    collectAndSendUserData(userName, userEmail, licenseKey, 'IP_RECIBIDA_EN_BACKEND'); 
 
                     setTimeout(() => {
                         accessContainer.classList.add('hidden');
@@ -968,18 +1020,53 @@
             responseMessage.className = `message ${type}`;
             responseMessage.style.opacity = '0';
             responseMessage.style.transform = 'translateY(10px)';
-            void responseMessage.offsetWidth;
+            void responseMessage.offsetWidth; // Trigger reflow to restart animation
             responseMessage.style.opacity = '1';
             responseMessage.style.transform = 'translateY(0)';
         }
 
-        window.addEventListener('load', () => {
-            splashMessage.textContent = 'El ebook está siendo preparado...';
-            
-            setTimeout(() => {
-                splashScreen.classList.add('hidden');
-            }, 1000);
-        });
+        // NUEVA FUNCIÓN: Health check y lógica de pantalla de carga interactiva
+        const checkServerStatus = async () => {
+            splashScreen.classList.remove('hidden'); 
+            accessContainer.classList.remove('show'); 
+
+            // Mensaje 1: Cargando contenido
+            splashMessage.textContent = 'Cargando contenido...';
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simula carga de recursos
+
+            // Mensaje 2: Verificando seguridad
+            splashMessage.textContent = 'Verificando seguridad...';
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simula verificación de seguridad
+
+            // Mensaje 3: Conectando con el servidor (intento real)
+            splashMessage.textContent = 'Conectando con el servidor de licencias...';
+            console.log('Intentando conectar con el servidor de licencias...');
+
+            try {
+                const response = await fetch(HEALTH_CHECK_URL, { signal: AbortSignal.timeout(7000) }); // Timeout de 7 segundos
+
+                if (response.ok) {
+                    console.log('Servidor de licencias activo.');
+                    splashMessage.textContent = 'Servidor conectado. ¡Bienvenido!';
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Pequeño retraso final
+                    accessContainer.classList.add('show'); 
+                    splashScreen.classList.add('hidden'); 
+                } else {
+                    // Si el servidor responde pero con un error (ej. 500)
+                    console.error(`Servidor respondió con estado: ${response.status}. Reintentando...`);
+                    splashMessage.textContent = `Error de conexión. Reintentando...`;
+                    setTimeout(checkServerStatus, 5000); // Reintenta después de 5 segundos
+                }
+            } catch (error) {
+                // Si hay un error de red o timeout
+                console.error('Fallo al conectar con el servidor de licencias:', error.message);
+                splashMessage.textContent = `Fallo de conexión. Reintentando...`;
+                setTimeout(checkServerStatus, 5000); // Reintenta después de 5 segundos
+            }
+        };
+
+        // Inicia el proceso cuando el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', checkServerStatus);
 
     </script>
 </body>
