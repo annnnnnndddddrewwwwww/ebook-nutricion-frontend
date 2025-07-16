@@ -757,7 +757,14 @@
         </div>
         <h1>Accede a tu Ebook</h1>
         <p>Introduce tu nombre, correo electrónico y clave de licencia para desbloquear el contenido exclusivo.</p>
-
+    <div class="input-group">
+        <label for="userNameInput">Tu Nombre:</label>
+        <input type="text" id="userNameInput" placeholder="Ej: Juan Pérez" required>
+    </div>
+    <div class="input-group">
+        <label for="userEmailInput">Tu Correo Electrónico:</label>
+        <input type="email" id="userEmailInput" placeholder="Ej: tu@correo.com" required>
+    </div>
         <div class="input-group">
             <input type="text" id="userNameInput" placeholder="Tu Nombre Completo" autocomplete="name" required>
             <input type="email" id="userEmailInput" placeholder="Tu Correo Electrónico" autocomplete="email" required>
@@ -830,319 +837,152 @@
     </a>
 
     <script>
-        const userNameInput = document.getElementById('userNameInput');
-        const userEmailInput = document.getElementById('userEmailInput');
-        const licenseKeyInput = document.getElementById('licenseKeyInput');
-        const accessEbookBtn = document.getElementById('accessEbookBtn');
-        const responseMessage = document.getElementById('responseMessage');
-        const accessContainer = document.getElementById('accessContainer');
-        const splashScreen = document.getElementById('splashScreen');
-        const splashMessage = document.getElementById('splashMessage');
-        const maintenanceScreen = document.getElementById('maintenanceScreen'); // Nuevo elemento
+    // URL de tu servidor de licencias. ¡ACTUALIZA ESTO CON TU URL REAL DE RENDER!
+    const LICENSE_SERVER_URL = 'https://mi-ebook-licencias-api.onrender.com';
 
-        const ebookPages = document.querySelectorAll('.ebook-page');
-        const prevPageBtn = document.getElementById('prevPageBtn');
-        const nextPageBtn = document.getElementById('nextPageBtn');
-        const pageCounter = document.getElementById('pageCounter');
-        let currentPageIndex = 0;
+    const splashScreen = document.getElementById('splashScreen');
+    const splashMessage = document.getElementById('splashMessage');
+    const maintenanceScreen = document.getElementById('maintenanceScreen');
+    const accessContainer = document.getElementById('accessContainer');
 
-        // ¡¡IMPORTANTE!! Reemplaza esta URL con la URL pública de tu servidor de Render
-        // Asegúrate de que esta URL base (sin la ruta específica) sea la de tu servicio en Render.
-        // Ejemplo: 'https://tu-nombre-servicio.onrender.com'
-        const LICENSE_SERVER_BASE_URL = 'https://mi-ebook-licencias-api.onrender.com'; // <--- ¡Asegúrate de que esta sea la URL base de tu Render!
-        const LICENSE_SERVER_VALIDATE_URL = `${LICENSE_SERVER_BASE_URL}/validate-and-register-license`;
-        const HEALTH_CHECK_URL = `${LICENSE_SERVER_BASE_URL}/`; // Usaremos la ruta raíz para el health check
-        const USER_DATA_COLLECT_URL = `${LICENSE_SERVER_BASE_URL}/collect-user-data`; // Nueva URL para guardar datos de usuario
+    // AÑADIDO: Nuevas referencias a los inputs de nombre y correo
+    const userNameInput = document.getElementById('userNameInput');
+    const userEmailInput = document.getElementById('userEmailInput');
+    // FIN AÑADIDO
 
-        // --- Funciones para Protección de Contenido ---
-        const disableRightClick = (e) => {
-            e.preventDefault();
-            console.warn("Clic derecho deshabilitado para proteger el contenido.");
-        };
+    const licenseKeyInput = document.getElementById('licenseKeyInput');
+    const validateButton = document.getElementById('validateButton');
+    const accessMessage = document.getElementById('accessMessage');
+    const ebookLink = document.getElementById('ebookLink');
 
-        const disableSelection = (e) => {
-            e.preventDefault();
-            console.warn("Selección de texto deshabilitada.");
-        };
+    // Función para mostrar/ocultar pantallas y mensajes
+    const showScreen = (screenToShow, message = '', type = 'info') => {
+        splashScreen.classList.remove('hidden');
+        maintenanceScreen.style.display = 'none'; // Asegúrate de que mantenimiento está oculto por defecto
+        accessContainer.classList.remove('show');
+        splashMessage.textContent = message;
+        splashMessage.className = `message ${type}`;
 
-        const disableMobileSpecificActions = () => {
-            document.body.style.webkitTouchCallout = 'none';
-            document.body.style.webkitUserSelect = 'none';
-            document.body.style.userSelect = 'none';
-            document.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                console.warn("Menú contextual deshabilitado.");
-            });
-
-            const images = document.querySelectorAll('img');
-            images.forEach(img => {
-                img.ondragstart = () => false;
-                img.oncontextmenu = () => false;
-            });
-
-            const ebookTextElements = document.querySelectorAll('#ebookContent p, #ebookContent li, #ebookContent h2, #ebookContent h3, #ebookContent h4');
-            ebookTextElements.forEach(el => {
-                el.style.webkitUserSelect = 'none';
-                el.style.mozUserSelect = 'none';
-                el.style.msUserSelect = 'none';
-                el.style.userSelect = 'none';
-            });
-        };
-
-        const handleKeyDown = (e) => {
-            if (
-                e.key === "F12" ||
-                (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) ||
-                (e.metaKey && e.altKey && (e.key === "I" || e.key === "J")) || 
-                (e.ctrlKey && e.key === "U") ||
-                (e.metaKey && e.key === "U") || 
-                (e.key === "PrintScreen") || 
-                (e.ctrlKey && e.key === "P") ||
-                (e.metaKey && e.key === "P")
-            ) {
-                e.preventDefault();
-                console.warn(`Tecla ${e.key} deshabilitada para proteger el contenido.`);
-            }
-        };
-
-        const activateContentProtection = () => {
-            document.addEventListener('contextmenu', disableRightClick);
-            document.addEventListener('selectstart', disableSelection);
-            document.body.style.webkitUserSelect = 'none';
-            document.body.style.mozUserSelect = 'none';
-            document.body.style.msUserSelect = 'none';
-            document.body.style.userSelect = 'none';
-            document.addEventListener('keydown', handleKeyDown);
-            document.body.ondragstart = () => false;
-            disableMobileSpecificActions();
-        };
-
-        const deactivateContentProtection = () => {
-            document.removeEventListener('contextmenu', disableRightClick);
-            document.removeEventListener('selectstart', disableSelection);
-            document.body.style.webkitUserSelect = '';
-            document.body.style.mozUserSelect = '';
-            document.body.style.msUserSelect = '';
-            document.body.style.userSelect = '';
-            document.removeEventListener('keydown', handleKeyDown);
-            document.body.ondragstart = null;
-            document.body.style.webkitTouchCallout = '';
-            document.body.style.webkitUserSelect = '';
-            document.removeEventListener('contextmenu', (e) => e.preventDefault());
-        };
-
-        // --- Funciones de Navegación del Ebook ---
-        const showPage = (index, direction = 'none') => {
-            if (index < 0 || index >= ebookPages.length) return;
-
-            const prevPageIndex = currentPageIndex;
-            const prevPage = ebookPages[prevPageIndex];
-
-            if (prevPage && prevPageIndex !== index) {
-                if (direction === 'next') {
-                    prevPage.classList.add('leaving-next');
-                } else if (direction === 'prev') {
-                    prevPage.classList.add('leaving-prev');
-                }
-                prevPage.addEventListener('animationend', () => {
-                    prevPage.classList.remove('active', 'leaving-next', 'leaving-prev');
-                    prevPage.style.display = 'none';
-                }, { once: true });
-            }
-
-            currentPageIndex = index;
-            const currentPage = ebookPages[currentPageIndex];
-
-            currentPage.style.display = 'block';
-            currentPage.classList.remove('fadeInPage', 'slideInFromRight', 'slideInFromLeft');
-
-            if (direction === 'next') {
-                currentPage.classList.add('next-page');
-            } else if (direction === 'prev') {
-                currentPage.classList.add('prev-page');
-            } else {
-                currentPage.classList.add('fadeInPage');
-            }
-            currentPage.classList.add('active');
-
-            updatePaginationButtons();
-            updatePageCounter();
-            ebookContent.scrollTop = 0;
-        };
-
-        const updatePaginationButtons = () => {
-            prevPageBtn.disabled = currentPageIndex === 0;
-            nextPageBtn.disabled = currentPageIndex === ebookPages.length - 1;
-        };
-
-        const updatePageCounter = () => {
-            pageCounter.textContent = `Página ${currentPageIndex + 1} de ${ebookPages.length}`;
-        };
-
-        prevPageBtn.addEventListener('click', () => {
-            showPage(currentPageIndex - 1, 'prev');
-        });
-
-        nextPageBtn.addEventListener('click', () => {
-            showPage(currentPageIndex + 1, 'next');
-        });
-
-        // --- Lógica para Recopilar y Enviar Datos de Usuario ---
-        const collectAndSendUserData = async (userName, userEmail, licenseKey, clientIp) => {
-            try {
-                const response = await fetch(USER_DATA_COLLECT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userName,
-                        userEmail,
-                        licenseKey,
-                        clientIp,
-                        timestamp: new Date().toISOString()
-                    }),
-                });
-
-                if (response.ok) {
-                    console.log('Datos de usuario enviados al servidor con éxito.');
-                } else {
-                    console.error('Error al enviar datos de usuario al servidor:', response.statusText);
-                }
-            } catch (error) {
-                console.error('Fallo al conectar con el endpoint de datos de usuario:', error);
-            }
-        };
-
-
-        // --- Lógica del Acceso ---
-        accessEbookBtn.addEventListener('click', async () => {
-            const userName = userNameInput.value.trim();
-            const userEmail = userEmailInput.value.trim();
-            const licenseKey = licenseKeyInput.value.trim(); 
-
-            if (!userName || !userEmail || !licenseKey) {
-                showMessage('Por favor, completa todos los campos.', 'error');
-                return;
-            }
-
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(userEmail)) {
-                showMessage('Por favor, introduce un correo electrónico válido.', 'error');
-                return;
-            }
-
-            showMessage('Verificando licencia...', 'info');
-            accessEbookBtn.disabled = true;
-
-            try {
-                const response = await fetch(LICENSE_SERVER_VALIDATE_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        userName: userName,
-                        userEmail: userEmail,
-                        license: licenseKey 
-                    }),
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.valid) { 
-                    showMessage('Licencia validada. ¡Acceso concedido! 🎉', 'success');
-                    const glowOverlay = document.createElement('div');
-                    glowOverlay.classList.add('ebook-unlocked-overlay');
-                    document.body.appendChild(glowOverlay);
-
-                    // Recopilar y enviar datos después de la validación exitosa
-                    // La IP la obtendrá el backend al recibir la petición
-                    collectAndSendUserData(userName, userEmail, licenseKey, 'IP_RECIBIDA_EN_BACKEND'); 
-
-                    setTimeout(() => {
-                        accessContainer.classList.add('hidden');
-                        document.body.classList.add('ebook-active');
-                        ebookContent.classList.add('visible');
-                        showPage(0);
-                        activateContentProtection();
-                        glowOverlay.remove();
-                    }, 1000);
-
-                } else {
-                    showMessage(data.message || 'Clave de licencia inválida o ya utilizada.', 'error');
-                }
-            } catch (error) {
-                console.error('Error al conectar con el servidor de licencias:', error);
-                showMessage('Error al conectar con el servidor. Inténtalo de nuevo más tarde.', 'error');
-            } finally {
-                accessEbookBtn.disabled = false;
-            }
-        });
-
-        function showMessage(msg, type) {
-            responseMessage.textContent = msg;
-            responseMessage.className = `message ${type}`;
-            responseMessage.style.opacity = '0';
-            responseMessage.style.transform = 'translateY(10px)';
-            void responseMessage.offsetWidth; // Trigger reflow to restart animation
-            responseMessage.style.opacity = '1';
-            responseMessage.style.transform = 'translateY(0)';
+        if (screenToShow === 'maintenance') {
+            maintenanceScreen.style.display = 'flex';
+            splashScreen.classList.add('hidden'); // Oculta splash si mostramos mantenimiento
+            accessContainer.classList.remove('show');
+        } else if (screenToShow === 'access') {
+            accessContainer.classList.add('show');
+            splashScreen.classList.add('hidden'); // Oculta splash si mostramos el formulario
+            maintenanceScreen.style.display = 'none';
+            document.title = 'Ebook - Acceso con Licencia'; // Restaura el título original
+        } else { // Default to splash screen
+            splashScreen.classList.remove('hidden');
         }
+    };
 
-        // NUEVA FUNCIÓN: Health check y lógica de pantalla de carga interactiva
-        const checkServerStatus = async () => {
-            splashScreen.classList.remove('hidden'); 
-            accessContainer.classList.remove('show'); 
-            maintenanceScreen.style.display = 'none'; // Asegúrate de que la pantalla de mantenimiento esté oculta al inicio
+    // Función para el chequeo de estado del servidor y modo de mantenimiento
+    const checkServerStatus = async () => {
+        showScreen('splash', 'Conectando con el servidor...', 'info');
 
-            // Mensaje 1: Cargando contenido
-            splashMessage.textContent = 'Cargando contenido...';
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Simula carga de recursos
-
-            // Mensaje 2: Verificando seguridad
-            splashMessage.textContent = 'Verificando seguridad...';
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Simula verificación de seguridad
-
-            // Mensaje 3: Conectando con el servidor (intento real)
-            splashMessage.textContent = 'Conectando con el servidor de licencias...';
-            console.log('Intentando conectar con el servidor de licencias...');
-
-            try {
-                const response = await fetch(HEALTH_CHECK_URL, { signal: AbortSignal.timeout(7000) }); // Timeout de 7 segundos
-
-                if (response.status === 503) { // Servidor en modo de mantenimiento
-                    console.log('Servidor en modo de mantenimiento.');
-                    splashScreen.classList.add('hidden');
-                    accessContainer.classList.add('hidden');
-                    maintenanceScreen.style.display = 'flex'; // Muestra la pantalla de mantenimiento
-                    document.title = 'Web en Mantenimiento'; // Cambia el título de la página
-                    // No reintentes automáticamente en modo mantenimiento, espera a que el usuario refresque.
-                } else if (response.ok) { // Servidor activo y no en mantenimiento
-                    console.log('Servidor de licencias activo.');
-                    splashMessage.textContent = 'Servidor conectado. ¡Bienvenido!';
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Pequeño retraso final
-                    accessContainer.classList.add('show'); 
-                    splashScreen.classList.add('hidden'); 
-                    maintenanceScreen.style.display = 'none'; // Asegúrate de que esté oculta
-                    document.title = 'Ebook - Acceso con Licencia'; // Restaura el título original
-                } else {
-                    // Si el servidor responde pero con un error (ej. 500)
-                    console.error(`Servidor respondió con estado: ${response.status}. Reintentando...`);
-                    splashMessage.textContent = `Error de conexión (${response.status}). Reintentando...`;
-                    setTimeout(checkServerStatus, 5000); // Reintenta después de 5 segundos
+        try {
+            const response = await fetch(`${LICENSE_SERVER_URL}/get-maintenance-status`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.maintenanceMode) {
+                    showScreen('maintenance', 'Modo de mantenimiento activo. Por favor, inténtalo de nuevo más tarde.', 'warning');
+                    document.title = 'Ebook - Mantenimiento'; // Cambia el título si está en mantenimiento
+                    return; // Detener ejecución si está en mantenimiento
                 }
-            } catch (error) {
-                // Si hay un error de red o timeout
-                console.error('Fallo al conectar con el servidor de licencias:', error.message);
-                splashMessage.textContent = `Fallo de conexión. Reintentando...`;
+            } else {
+                console.warn(`No se pudo obtener el estado de mantenimiento (${response.status}). Continuando...`);
+            }
+
+            // Si no hay mantenimiento o no se pudo verificar, intenta conectar para el acceso normal
+            const connectionResponse = await fetch(`${LICENSE_SERVER_URL}/`); // Endpoint básico para verificar conexión
+            if (connectionResponse.ok) {
+                console.log('Servidor conectado. ¡Bienvenido!');
+                splashMessage.textContent = 'Servidor conectado. ¡Bienvenido!';
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Pequeño retraso final
+                accessContainer.classList.add('show');
+                splashScreen.classList.add('hidden');
+                maintenanceScreen.style.display = 'none'; // Asegúrate de que esté oculta
+                document.title = 'Ebook - Acceso con Licencia'; // Restaura el título original
+            } else {
+                // Si el servidor responde pero con un error (ej. 500)
+                console.error(`Servidor respondió con estado: ${response.status}. Reintentando...`);
+                splashMessage.textContent = `Error de conexión (${response.status}). Reintentando...`;
                 setTimeout(checkServerStatus, 5000); // Reintenta después de 5 segundos
             }
-        };
+        } catch (error) {
+            // Si hay un error de red o timeout
+            console.error('Fallo al conectar con el servidor de licencias:', error.message);
+            // Si hay un fallo de conexión, simplemente se mantiene en el último mensaje
+            // o se vuelve a establecer si se ha cambiado por un error.
+            splashMessage.textContent = 'Fallo de conexión. Reintentando...';
+            setTimeout(checkServerStatus, 5000); // Reintenta después de 5 segundos
+        }
+    };
 
-        // Inicia el proceso cuando el DOM esté completamente cargado
-        document.addEventListener('DOMContentLoaded', checkServerStatus);
+    // Inicia el proceso cuando el DOM esté completamente cargado
+    document.addEventListener('DOMContentLoaded', checkServerStatus);
 
-    </script>
+    // Listener para el botón de validar licencia
+    validateButton.addEventListener('click', async () => {
+        const licenseKey = licenseKeyInput.value.trim();
+
+        // AÑADIDO: Captura los valores de nombre y correo
+        const userName = userNameInput.value.trim();
+        const userEmail = userEmailInput.value.trim();
+        // FIN AÑADIDO
+
+        // MODIFICADO: Validación inicial para incluir nombre y correo
+        if (!licenseKey || !userName || !userEmail) {
+            accessMessage.textContent = 'Por favor, introduce tu nombre, correo electrónico y la clave de licencia.';
+            accessMessage.className = 'message error';
+            return;
+        }
+
+        accessMessage.textContent = 'Validando licencia...';
+        accessMessage.className = 'message info';
+
+        try {
+            const response = await fetch(`${LICENSE_SERVER_URL}/validate-and-register-license`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    license: licenseKey,
+                    userName: userName, // AÑADIDO
+                    userEmail: userEmail // AÑADIDO
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.valid) {
+                accessMessage.textContent = '¡Licencia válida! Acceso concedido.';
+                accessMessage.className = 'message success';
+                ebookLink.href = data.ebookUrl; // Asegúrate de que tu servidor devuelva ebookUrl
+                ebookLink.style.display = 'block'; // Muestra el enlace
+                validateButton.style.display = 'none'; // Oculta el botón
+                licenseKeyInput.style.display = 'none'; // Oculta el input
+                userNameInput.style.display = 'none'; // AÑADIDO: Oculta el input de nombre
+                userEmailInput.style.display = 'none'; // AÑADIDO: Oculta el input de correo
+                // Opcional: Oculta las etiquetas si quieres un look más limpio
+                document.querySelector('label[for="userNameInput"]').style.display = 'none';
+                document.querySelector('label[for="userEmailInput"]').style.display = 'none';
+                document.querySelector('label[for="licenseKeyInput"]').style.display = 'none';
+            } else {
+                accessMessage.textContent = data.message || 'Licencia inválida. Inténtalo de nuevo.';
+                accessMessage.className = 'message error';
+                ebookLink.style.display = 'none'; // Asegúrate de que el enlace no se muestre
+            }
+        } catch (error) {
+            console.error('Error al validar la licencia:', error);
+            accessMessage.textContent = 'Error de conexión con el servidor. Por favor, inténtalo de nuevo más tarde.';
+            accessMessage.className = 'message error';
+            ebookLink.style.display = 'none'; // Asegúrate de que el enlace no se muestre
+        }
+    });
+
+</script>
 </body>
 </html>
