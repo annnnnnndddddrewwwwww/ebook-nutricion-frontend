@@ -758,22 +758,21 @@
         <h1>Accede a tu Ebook</h1>
         <p>Introduce tu nombre, correo electrónico y clave de licencia para desbloquear el contenido exclusivo.</p>
 
-    <div class="input-group">
-       <label for="user-name-input">Tu Nombre:</label>
-       <input type="text" id="user-name-input" placeholder="Ingresa tu nombre completo">
-    </div>
-   <div class="input-group">
-       <label for="user-email-input">Tu Email:</label>
-       <input type="email" id="user-email-input" placeholder="Ingresa tu email">
-   </div>
-   <div class="input-group">
-       <label for="license-input">Clave de Licencia:</label>
-       <input type="text" id="license-input" placeholder="Ingresa tu clave de licencia">
-   </div>
-   <button id="validate-license-btn">Validar Licencia</button>
-        
-        <div id="responseMessage" class="message"></div>
-    </div>
+        <div class="input-group">
+                <label for="user-name-input">Tu Nombre:</label>
+                <input type="text" id="user-name-input" placeholder="Ingresa tu nombre completo" required>
+            </div>
+            <div class="input-group">
+                <label for="user-email-input">Tu Email:</label>
+                <input type="email" id="user-email-input" placeholder="Ingresa tu email" required>
+            </div>
+            <div class="input-group">
+                <label for="license-input">Clave de Licencia:</label>
+                <input type="text" id="license-input" placeholder="Ingresa tu clave de licencia" required>
+            </div>
+            <button id="validate-license-btn">Validar Licencia</button>
+            <p id="license-message" class="message"></p>
+        </div>
 
     <div id="ebookContent">
         <div class="ebook-inner-content">
