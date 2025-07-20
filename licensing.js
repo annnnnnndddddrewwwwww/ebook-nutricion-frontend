@@ -1,155 +1,115 @@
 // licensing.js
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Asegúrate de que estos IDs coincidan exactamente con tu index.html
-    const userNameInput = document.getElementById('userNameInput');
-    const userEmailInput = document.getElementById('userEmailInput');
-    const licenseInput = document.getElementById('licenseKeyInput');
-    const validateButton = document.getElementById('accessEbookBtn');
-
-    // Asegúrate de que estos IDs también coincidan con tu HTML para el mensaje y el contenedor del ebook
-    const licenseMessage = document.getElementById('responseMessage');
-    const ebookContainer = document.getElementById('ebookContent');
-    const licenseFormContainer = document.getElementById('access-container');
+    const licenseInput = document.getElementById('license-input');
+    const validateButton = document.getElementById('validate-license-btn');
+    const licenseMessage = document.getElementById('license-message');
+    const ebookContainer = document.getElementById('ebook-container');
+    const licenseFormContainer = document.getElementById('license-form-container');
 
     // **IMPORTANTE**: Reemplaza esta URL con la URL REAL de tu servicio de licencias en OnRender.
-    const LICENSE_SERVER_URL = 'https://mi-ebook-licencias-api.onrender.com/validate-and-register-license';
+    const LICENSE_SERVER_URL = 'https://mi-ebook-licencias-api.onrender.com/validate-and-register-license'; // Asegúrate de que esta URL sea la correcta para la validación
+
+    // **NUEVAS REFERENCIAS A LOS INPUTS**
+    const userNameInput = document.getElementById('user-name-input');
+    const userEmailInput = document.getElementById('user-email-input');
+    // **********************************
 
     // Función para mostrar mensajes
     const showMessage = (msg, type = 'error') => {
-        if (licenseMessage) {
-            licenseMessage.textContent = msg;
-            licenseMessage.className = `message ${type}`;
-            setTimeout(() => {
-                licenseMessage.textContent = '';
-                licenseMessage.className = 'message';
-            }, 5000);
-        } else {
-            console.warn('Elemento #responseMessage no encontrado en el DOM para mostrar el mensaje:', msg);
-        }
+        licenseMessage.textContent = msg;
+        licenseMessage.className = `message ${type}`;
     };
 
-    // Función para mostrar el ebook y aplicar la animación
+    // Función para mostrar el ebook
     const showEbook = () => {
-        if (licenseFormContainer && ebookContainer) {
-            licenseFormContainer.classList.remove('show');
-            licenseFormContainer.classList.add('hidden');
-
-            ebookContainer.classList.add('visible');
-            document.body.classList.add('ebook-active');
-
-            const glowOverlay = document.createElement('div');
-            glowOverlay.classList.add('ebook-unlocked-overlay');
-            document.body.appendChild(glowOverlay);
-            setTimeout(() => {
-                glowOverlay.remove();
-            }, 1500);
-
-            showMessage('¡Licencia válida! Disfruta de tu Ebook.', 'success');
-
-            const whatsappButton = document.querySelector('.whatsapp-button');
-            if (whatsappButton) {
-                whatsappButton.style.display = 'none';
-            }
-        } else {
-            console.error('No se encontraron los contenedores del formulario o del ebook (access-container o ebookContent).');
-        }
+        licenseFormContainer.classList.add('hidden');
+        ebookContainer.classList.remove('hidden');
+        showMessage('¡Licencia válida! Disfruta de tu Ebook.', 'success');
     };
 
-    // Función para validar la licencia (userIp ya no se obtiene ni se usa aquí)
+    // Función para validar la licencia
     const validateLicense = async (license) => {
-        if (!userNameInput || !userEmailInput || !licenseInput) {
-            console.error('Uno o más elementos de entrada (nombre, email, licencia) no fueron encontrados.');
-            showMessage('Error interno: Faltan elementos de entrada en la página.');
+        if (!license) {
+            showMessage('Por favor, introduce una clave de licencia.');
             return false;
         }
 
+        // **AHORA OBTENEMOS LOS VALORES DE LOS NUEVOS INPUTS**
         const userName = userNameInput.value.trim();
         const userEmail = userEmailInput.value.trim();
 
-        // Validar que los campos necesarios estén presentes (userIp ya no se valida aquí)
-        if (!license || !userName || !userEmail) {
-            showMessage('Por favor, ingresa tu nombre, correo y la clave de licencia.');
+        if (!userName || !userEmail) {
+            showMessage('Por favor, rellena tu nombre y email.');
             return false;
         }
-
-        if (validateButton) validateButton.disabled = true;
-        showMessage('Validando licencia...', 'info');
+        // ***************************************************
 
         try {
             const response = await fetch(LICENSE_SERVER_URL, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    license: license,
-                    userName: userName,
-                    userEmail: userEmail
-                    // userIp ya no se incluye aquí
+                    licenseKey: license,
+                    userName: userName, // AHORA ESTO VIENE DEL INPUT
+                    userEmail: userEmail // AHORA ESTO VIENE DEL INPUT
                 })
             });
 
             const data = await response.json();
 
-            if (data.success) {
+            if (response.ok && data.success) {
                 localStorage.setItem('ebook_license', license);
-                localStorage.setItem('ebook_user_name', userName);
-                localStorage.setItem('ebook_user_email', userEmail);
+                // Opcional: También guardar userName y userEmail si necesitas revalidar automáticamente más tarde
+                // localStorage.setItem('ebook_userName', userName);
+                // localStorage.setItem('ebook_userEmail', userEmail);
                 showEbook();
+                return true;
             } else {
-                showMessage(data.message, 'error');
+                showMessage(data.message || 'Licencia inválida. Inténtalo de nuevo.');
+                localStorage.removeItem('ebook_license');
+                // localStorage.removeItem('ebook_userName');
+                // localStorage.removeItem('ebook_userEmail');
+                return false;
             }
         } catch (error) {
             console.error('Error al validar la licencia:', error);
-            showMessage('Error al conectar con el servidor de licencias. Inténtalo de nuevo más tarde.', 'error');
-        } finally {
-            if (validateButton) validateButton.disabled = false;
+            showMessage('Error de conexión con el servidor de licencias. Por favor, inténtalo de nuevo más tarde.');
+            return false;
         }
     };
 
-    // Asignar el evento click al botón de validación
-    if (validateButton) {
-        validateButton.addEventListener('click', () => {
+    // Event listener para el botón de validar
+    validateButton.addEventListener('click', () => {
+        const license = licenseInput.value.trim();
+        validateLicense(license);
+    });
+
+    // Permitir validar la licencia también con la tecla Enter en el input de licencia
+    licenseInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
             const license = licenseInput.value.trim();
             validateLicense(license);
-        });
-    } else {
-        console.error('Elemento #accessEbookBtn no encontrado en el DOM.');
-    }
-
-    // Permitir validar la licencia también con la tecla Enter en los inputs
-    const addEnterKeyListener = (inputElement) => {
-        if (inputElement) {
-            inputElement.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    const license = licenseInput.value.trim();
-                    validateLicense(license);
-                }
-            });
         }
-    };
+    });
 
-    addEnterKeyListener(licenseInput);
-    addEnterKeyListener(userNameInput);
-    addEnterKeyListener(userEmailInput);
+    // **IMPORTANTE**: Lógica para auto-validar al cargar la página
+    // Si quieres que el ebook se muestre automáticamente si ya hay una licencia en localStorage,
+    // y dado que ahora necesitas userName y userEmail, tienes dos opciones:
+    // 1. Guardar también userName y userEmail en localStorage cuando la licencia es válida.
+    // 2. Pedir al usuario que los ingrese de nuevo cada vez que acceda, aunque la licencia esté guardada.
 
-    // Lógica para auto-validar al cargar la página
     const storedLicense = localStorage.getItem('ebook_license');
-    const storedUserName = localStorage.getItem('ebook_user_name');
-    const storedUserEmail = localStorage.getItem('ebook_user_email');
-
-    if (storedLicense && storedUserName && storedUserEmail) {
-        if (licenseInput) licenseInput.value = storedLicense;
-        if (userNameInput) userNameInput.value = storedUserName;
-        if (userEmailInput) userEmailInput.value = storedUserEmail;
-
-        if (licenseInput && userNameInput && userEmailInput) {
-            validateLicense(storedLicense);
-        } else {
-            console.warn('No se pudo auto-validar al cargar la página porque faltan elementos de entrada.');
-            showMessage('Por favor, ingresa tu información para acceder al ebook.');
-        }
+    // Para simplificar por ahora, vamos a auto-validar si existe una licencia guardada,
+    // pero el usuario deberá reingresar su nombre/email si no los guardas también.
+    // Una implementación más robusta guardaría también el nombre/email.
+    if (storedLicense) {
+        licenseInput.value = storedLicense; // Precarga la licencia guardada
+        // Aquí no llamamos a validateLicense automáticamente, ya que requeriría nombre/email.
+        // El usuario deberá presionar "Validar Licencia" con los campos rellenos.
+        // Si necesitas auto-validación completa, tendrías que guardar más datos en localStorage
+        // y pasarlos a validateLicense aquí.
     }
 });
