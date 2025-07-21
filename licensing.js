@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const VALIDATE_LICENSE_SERVER_URL = 'https://mi-ebook-licencias-api.onrender.com/validate-and-register-license';
     const SEND_WELCOME_EMAIL_SERVER_URL = 'https://mi-ebook-licencias-api.onrender.com/send-welcome-on-login';
 
-    // **Referencias a los inputs de Nombre y Correo Electrónico (todavía necesarios para el email de bienvenida)**
+    // Referencias a los inputs de Nombre y Correo Electrónico (todavía necesarios para el email de bienvenida)
     const userNameInput = document.getElementById('user-name-input');
     const userEmailInput = document.getElementById('user-email-input');
 
@@ -30,10 +30,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Función para notificar al servidor que envíe el correo de bienvenida
     const notifyServerToSendWelcomeEmail = async (userName, userEmail, licenseKey) => {
-        // Solo intenta enviar si tenemos ambos, nombre y correo
-        if (!userName || !userEmail) {
-            console.warn("No se puede enviar el correo de bienvenida: faltan nombre o correo electrónico.");
-            return;
+        // Solo intenta enviar si tenemos ambos, nombre y correo, y la licencia
+        if (!userName || !userEmail || !licenseKey) {
+            console.warn("No se puede enviar el correo de bienvenida: faltan nombre, correo electrónico o clave de licencia.");
+            return; // No intentar enviar si faltan datos
         }
         try {
             const response = await fetch(SEND_WELCOME_EMAIL_SERVER_URL, {
@@ -59,14 +59,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Función para validar la licencia
     const validateLicense = async () => {
         const license = licenseInput.value.trim();
-        // Recogemos userName y userEmail, pero solo para el email de bienvenida, no para la validación de licencia
-        const userName = userNameInput.value.trim();
-        const userEmail = userEmailInput.value.trim();
+        const userName = userNameInput.value.trim(); // Recoger, pero no validar para acceso
+        const userEmail = userEmailInput.value.trim(); // Recoger, pero no validar para acceso
 
+        // **MODIFICACIÓN CLAVE AQUÍ:** Solo valida que la licencia no esté vacía.
         if (!license) {
             showMessage('Por favor, ingresa tu clave de licencia.', 'error');
             return;
         }
+
+        // Puedes añadir una validación para userName y userEmail si quieres que el correo de bienvenida siempre se intente enviar
+        // o si los quieres hacer 'required' a nivel de UI, pero NO para bloquear el acceso al ebook.
+        // Ejemplo (solo warning, no bloqueo):
+        if (!userName || !userEmail) {
+             console.warn("Nombre o correo electrónico no proporcionados. El email de bienvenida no se enviará.");
+             // showMessage('Considera ingresar tu nombre y correo electrónico para recibir un mensaje de bienvenida.', 'info'); // Opcional: mostrar un mensaje informativo
+        }
+
 
         showMessage('Validando licencia...', 'info');
 
@@ -84,28 +93,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (data.success) {
                 // Licencia válida
                 localStorage.setItem('ebook_license', license);
-                // Guardamos nombre y email para persistencia si el usuario accede de nuevo
-                localStorage.setItem('ebook_userName', userName);
-                localStorage.setItem('ebook_userEmail', userEmail);
+                // Guarda userName y userEmail si existen para persistencia, aunque no sean obligatorios para la licencia
+                if (userName) localStorage.setItem('ebook_userName', userName);
+                if (userEmail) localStorage.setItem('ebook_userEmail', userEmail);
+
 
                 showEbook();
 
-                // Dispara el envío del correo de bienvenida aquí
-                // Se envía SOLO si userName y userEmail están presentes
+                // Dispara el envío del correo de bienvenida aquí.
+                // Se envía SOLO si userName y userEmail están presentes.
                 notifyServerToSendWelcomeEmail(userName, userEmail, license);
 
             } else {
                 // Licencia inválida o expirada o límite de IPs
                 showMessage(data.message, 'error');
                 localStorage.removeItem('ebook_license');
-                localStorage.removeItem('ebook_userName');
+                localStorage.removeItem('ebook_userName'); // Limpiar también los datos del usuario si la licencia falla
                 localStorage.removeItem('ebook_userEmail');
             }
         } catch (error) {
             console.error('Error al validar la licencia:', error);
             showMessage('Error de conexión con el servidor. Intenta de nuevo más tarde.', 'error');
             localStorage.removeItem('ebook_license');
-            localStorage.removeItem('ebook_userName');
+            localStorage.removeItem('ebook_userName'); // Limpiar también los datos del usuario en caso de error de conexión
             localStorage.removeItem('ebook_userEmail');
         }
     };
@@ -123,19 +133,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const storedUserName = localStorage.getItem('ebook_userName');
     const storedUserEmail = localStorage.getItem('ebook_userEmail');
 
-    if (storedLicense) { // Si hay una licencia guardada, precargamos los campos
-        licenseInput.value = storedLicense;
-        // Solo precargamos nombre y email si también están guardados
+    if (storedLicense) {
+        licenseInput.value = storedLicense; // Precarga la licencia guardada
         if (storedUserName) userNameInput.value = storedUserName;
         if (storedUserEmail) userEmailInput.value = storedUserEmail;
 
-        // Intentamos auto-validar si todos los campos necesarios para el acceso están presentes
-        // Para la validación de licencia, solo se necesita la licencia.
-        // Para el email de bienvenida (si se vuelve a disparar), se necesita nombre y email.
-        // Aquí se decide si se valida automáticamente o se requiere interacción del usuario.
-        // Por la nueva lógica, solo la licencia es indispensable para el acceso.
-        // PERO, para evitar reenviar emails innecesariamente, solo validamos la licencia
-        // automáticamente y el email se dispara con la primera interacción "manual" (o si no se envió antes).
-        validateLicense(); // Llama a la validación, que ahora solo necesita la licencia.
+        // Auto-validar la licencia al cargar si hay una guardada
+        // La validación ahora solo necesita la licencia del campo.
+        validateLicense();
     }
 });
