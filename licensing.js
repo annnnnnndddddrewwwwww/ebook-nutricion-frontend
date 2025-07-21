@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // Función para validar la licencia
-    const validateLicense = async () => { // Ya NO recibe 'license' como argumento, lo obtiene directamente
-        const license = licenseInput.value.trim(); // Obtiene el valor aquí
+    const validateLicense = async () => {
+        const license = licenseInput.value.trim(); // Obtiene el valor directamente del input
         const userName = userNameInput.value.trim(); // Recoger, pero no validar para acceso
         const userEmail = userEmailInput.value.trim(); // Recoger, pero no validar para acceso
 
@@ -68,12 +68,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             return; // DETIENE la ejecución si la licencia está vacía
         }
 
-        // Puedes añadir una validación para userName y userEmail si quieres que el correo de bienvenida siempre se intente enviar
-        // o si los quieres hacer 'required' a nivel de UI, pero NO para bloquear el acceso al ebook.
-        // **Este bloque ahora solo lanza un WARN y NO BLOQUEA el acceso al ebook.**
+        // Este bloque ahora solo lanza un WARN y NO BLOQUEA el acceso al ebook.
+        // Si el usuario no proporciona nombre o email, el correo de bienvenida no se enviará.
         if (!userName || !userEmail) {
              console.warn("Nombre o correo electrónico no proporcionados. El email de bienvenida no se enviará.");
-             // Opcional: showMessage('Considera ingresar tu nombre y correo electrónico para recibir un mensaje de bienvenida.', 'info');
         }
 
 
@@ -85,7 +83,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ licenseKey: license }), // Solo enviamos la licencia
+                // *** ESTO ES LO CRÍTICO: SOLO SE ENVÍA licenseKey AL ENDPOINT DE VALIDACIÓN ***
+                body: JSON.stringify({ licenseKey: license }),
             });
 
             const data = await response.json();
@@ -93,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (data.success) {
                 // Licencia válida
                 localStorage.setItem('ebook_license', license);
-                // Guarda userName y userEmail si existen para persistencia, aunque no sean obligatorios para la licencia
+                // Guarda userName y userEmail si existen para persistencia
                 if (userName) localStorage.setItem('ebook_userName', userName);
                 if (userEmail) localStorage.setItem('ebook_userEmail', userEmail);
 
