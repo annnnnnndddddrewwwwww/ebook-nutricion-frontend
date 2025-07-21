@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Función para notificar al servidor que envíe el correo de bienvenida
     const notifyServerToSendWelcomeEmail = async (userName, userEmail, licenseKey) => {
-        // Solo intenta enviar si tenemos ambos, nombre y correo, y la licencia
+        // Solo intenta enviar si tenemos ambos, nombre y correo, y la licencia (opcional, pero buena práctica)
         if (!userName || !userEmail || !licenseKey) {
             console.warn("No se puede enviar el correo de bienvenida: faltan nombre, correo electrónico o clave de licencia.");
             return; // No intentar enviar si faltan datos
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ userName, userEmail, licenseKey }),
+                body: JSON.stringify({ userName, userEmail, licenseKey }), // Se envía licenseKey aquí para el registro de usuario si fuera necesario en el futuro
             });
 
             const data = await response.json();
@@ -59,21 +59,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Función para validar la licencia
     const validateLicense = async () => {
         const license = licenseInput.value.trim(); // Obtiene el valor directamente del input
-        const userName = userNameInput.value.trim(); // Recoger, pero no validar para acceso
-        const userEmail = userEmailInput.value.trim(); // Recoger, pero no validar para acceso
+        const userName = userNameInput.value.trim(); // Recoger para email
+        const userEmail = userEmailInput.value.trim(); // Recoger para email
 
-        // **MODIFICACIÓN CLAVE AQUÍ:** Solo valida que la licencia no esté vacía.
+        // *** CAMBIO CRÍTICO AQUÍ: VALIDACIÓN FRONEND DE CAMPO VACÍO ***
         if (!license) {
             showMessage('Por favor, ingresa tu clave de licencia.', 'error');
-            return; // DETIENE la ejecución si la licencia está vacía
+            return; // DETIENE la ejecución si la licencia está vacía ANTES de enviar al servidor
         }
+        // ***************************************************************
 
-        // Este bloque ahora solo lanza un WARN y NO BLOQUEA el acceso al ebook.
-        // Si el usuario no proporciona nombre o email, el correo de bienvenida no se enviará.
+        // Este bloque es para la advertencia del email de bienvenida, no bloquea el acceso
         if (!userName || !userEmail) {
              console.warn("Nombre o correo electrónico no proporcionados. El email de bienvenida no se enviará.");
         }
-
 
         showMessage('Validando licencia...', 'info');
 
@@ -83,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // *** ESTO ES LO CRÍTICO: SOLO SE ENVÍA licenseKey AL ENDPOINT DE VALIDACIÓN ***
+                // *** Esto es correcto: SOLO se envía licenseKey al endpoint de validación ***
                 body: JSON.stringify({ licenseKey: license }),
             });
 
@@ -92,40 +91,49 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (data.success) {
                 // Licencia válida
                 localStorage.setItem('ebook_license', license);
-                // Guarda userName y userEmail si existen para persistencia
                 if (userName) localStorage.setItem('ebook_userName', userName);
                 if (userEmail) localStorage.setItem('ebook_userEmail', userEmail);
-
 
                 showEbook();
 
                 // Dispara el envío del correo de bienvenida aquí.
-                // Se envía SOLO si userName y userEmail están presentes.
                 notifyServerToSendWelcomeEmail(userName, userEmail, license);
 
             } else {
                 // Licencia inválida o expirada o límite de IPs
                 showMessage(data.message, 'error');
                 localStorage.removeItem('ebook_license');
-                localStorage.removeItem('ebook_userName'); // Limpiar también los datos del usuario si la licencia falla
+                localStorage.removeItem('ebook_userName');
                 localStorage.removeItem('ebook_userEmail');
             }
         } catch (error) {
             console.error('Error al validar la licencia:', error);
             showMessage('Error de conexión con el servidor. Intenta de nuevo más tarde.', 'error');
             localStorage.removeItem('ebook_license');
-            localStorage.removeItem('ebook_userName'); // Limpiar también los datos del usuario en caso de error de conexión
+            localStorage.removeItem('ebook_userName');
             localStorage.removeItem('ebook_userEmail');
         }
     };
 
-    validateButton.addEventListener('click', validateLicense); // Llama a validateLicense sin argumentos
+    validateButton.addEventListener('click', validateLicense);
 
     licenseInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
-            validateLicense(); // Llama a validateLicense sin argumentos
+            validateLicense();
         }
     });
+    // También para los otros campos para comodidad del usuario
+    userNameInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            validateLicense();
+        }
+    });
+    userEmailInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            validateLicense();
+        }
+    });
+
 
     // Lógica para auto-validar al cargar la página si ya hay datos guardados
     const storedLicense = localStorage.getItem('ebook_license');
@@ -133,7 +141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const storedUserEmail = localStorage.getItem('ebook_userEmail');
 
     if (storedLicense) {
-        licenseInput.value = storedLicense; // Precarga la licencia guardada
+        licenseInput.value = storedLicense;
         if (storedUserName) userNameInput.value = storedUserName;
         if (storedUserEmail) userEmailInput.value = storedUserEmail;
 
