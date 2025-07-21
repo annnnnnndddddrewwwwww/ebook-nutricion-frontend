@@ -57,23 +57,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // Función para validar la licencia
-    const validateLicense = async () => {
-        const license = licenseInput.value.trim();
+    const validateLicense = async () => { // Ya NO recibe 'license' como argumento, lo obtiene directamente
+        const license = licenseInput.value.trim(); // Obtiene el valor aquí
         const userName = userNameInput.value.trim(); // Recoger, pero no validar para acceso
         const userEmail = userEmailInput.value.trim(); // Recoger, pero no validar para acceso
 
         // **MODIFICACIÓN CLAVE AQUÍ:** Solo valida que la licencia no esté vacía.
         if (!license) {
             showMessage('Por favor, ingresa tu clave de licencia.', 'error');
-            return;
+            return; // DETIENE la ejecución si la licencia está vacía
         }
 
         // Puedes añadir una validación para userName y userEmail si quieres que el correo de bienvenida siempre se intente enviar
         // o si los quieres hacer 'required' a nivel de UI, pero NO para bloquear el acceso al ebook.
-        // Ejemplo (solo warning, no bloqueo):
+        // **Este bloque ahora solo lanza un WARN y NO BLOQUEA el acceso al ebook.**
         if (!userName || !userEmail) {
              console.warn("Nombre o correo electrónico no proporcionados. El email de bienvenida no se enviará.");
-             // showMessage('Considera ingresar tu nombre y correo electrónico para recibir un mensaje de bienvenida.', 'info'); // Opcional: mostrar un mensaje informativo
+             // Opcional: showMessage('Considera ingresar tu nombre y correo electrónico para recibir un mensaje de bienvenida.', 'info');
         }
 
 
@@ -120,11 +120,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    validateButton.addEventListener('click', validateLicense);
+    validateButton.addEventListener('click', validateLicense); // Llama a validateLicense sin argumentos
 
     licenseInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
-            validateLicense();
+            validateLicense(); // Llama a validateLicense sin argumentos
         }
     });
 
@@ -138,8 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (storedUserName) userNameInput.value = storedUserName;
         if (storedUserEmail) userEmailInput.value = storedUserEmail;
 
-        // Auto-validar la licencia al cargar si hay una guardada
-        // La validación ahora solo necesita la licencia del campo.
+        // **AHORA SÍ LLAMAMOS A validateLicense AUTOMÁTICAMENTE AL CARGAR**
         validateLicense();
     }
 });
