@@ -1,0 +1,2478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebook - Acceso con Licencia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            /* Colores basados en el logo de Eva Vidal */
+            --primary-color: #4A729E; /* Azul principal del logo */
+            --primary-dark: #375F8A; /* Un tono más oscuro del azul principal */
+            --secondary-color: #7091B8; /* Azul claro/secundario del texto "EVA VIDAL" */
+            --text-dark-gray: #444444; /* Gris oscuro del texto "Eva Vidal" */
+            /* Colores de estado y UI */
+            --danger-color: #dc3545; /* Rojo para errores (se mantiene estándar) */
+            --success-color: #28a745; /* Verde para éxito (se mantiene estándar) */
+            /* Fondos y bordes */
+            --background-light: #f8f8f8; /* Fondo general muy ligero, casi blanco */
+            --card-background: #ffffff; /* Fondo de tarjetas/contenedores (blanco puro) */
+            --text-color: #555555; /* Color de texto principal más suave */
+            --heading-color: var(--text-dark-gray); /* Títulos en el gris oscuro del logo */
+            --border-color: #e0e0e0; /* Color de bordes suaves */
+            /* Sombras */
+            --shadow-light: 0 6px 20px rgba(0, 0, 0, 0.08); /* Sombra más suave y extendida */
+            --shadow-medium: 0 10px 30px rgba(0, 0, 0, 0.12); /* Sombra más pronunciada */
+            /* Tipografías */
+            --font-family-heading: 'Poppins', sans-serif; /* Fuente para títulos */
+            --font-family-body: 'Inter', sans-serif; /* Fuente para cuerpo de texto */
+        }
+
+        body {
+            font-family: var(--font-family-body);
+            background-color: var(--background-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background-color 0.5s ease;
+            /* Protección de Contenido */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+            body.ebook-active {
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                padding: 0;
+                min-height: 100vh;
+                background-color: var(--card-background);
+                overflow-y: auto;
+            }
+
+        /* Splash Screen */
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--background-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease-out;
+            text-align: center;
+        }
+
+            #splashScreen.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+        .spinner {
+            border: 8px solid rgba(0, 0, 0, 0.1);
+            border-top: 8px solid var(--primary-color); /* Spinner con color primario */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #splashMessage {
+            font-size: 1.2em;
+            color: var(--text-color);
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        /* Contenedor de Acceso */
+        .access-container {
+            background-color: var(--card-background);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-medium);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+            transition: all 0.7s ease-in-out, opacity 0.5s ease-in-out;
+            /* INICIALMENTE OCULTO Y PREPARADO PARA LA ANIMACIÓN */
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none; /* Deshabilita interacciones hasta que se muestre */
+            z-index: 2;
+        }
+
+            /* Clase para mostrar el contenedor de acceso */
+            .access-container.show {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                pointer-events: auto;
+                animation: fadeInScale 0.7s ease-out forwards;
+            }
+
+            .access-container.hidden {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.8);
+                pointer-events: none;
+                height: 0;
+                padding: 0;
+                margin: 0;
+                overflow: hidden;
+                border: none;
+                box-shadow: none;
+            }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+            .logo-container img {
+                max-width: 280px; /* Ajusta el tamaño del logo */
+                height: auto;
+                margin-bottom: 15px;
+                filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.1)); /* Sombra sutil para el logo */
+            }
+
+        h1 {
+            font-family: var(--font-family-heading);
+            color: var(--heading-color);
+            margin-bottom: 25px;
+            font-size: 2.2em;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+            h1::after {
+                content: '';
+                position: absolute;
+                left: 50%;
+                bottom: 0;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 3px;
+                background-color: var(--primary-color); /* Línea con color primario */
+                border-radius: 2px;
+            }
+
+        p {
+            font-family: var(--font-family-body);
+            font-size: 1.05em;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        input[type="text"], input[type="email"] {
+            width: calc(100% - 40px);
+            padding: 15px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1.1em;
+            color: var(--text-color);
+            background-color: var(--background-light); /* Fondo de input ligeramente gris */
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+            input[type="text"]:focus, input[type="email"]:focus {
+                outline: none;
+                border-color: var(--primary-color); /* Borde con color primario al enfocar */
+                box-shadow: 0 0 0 4px rgba(74, 114, 158, 0.2), inset 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra con color primario */
+                background-color: var(--card-background);
+            }
+
+        button {
+            background-color: var(--primary-color); /* Botón con color primario */
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 6px 15px rgba(74, 114, 158, 0.4); /* Sombra con color primario */
+            letter-spacing: 0.5px;
+        }
+
+            button:hover {
+                background-color: var(--primary-dark); /* Tono más oscuro al hover */
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(74, 114, 158, 0.5);
+            }
+
+            button:active {
+                transform: translateY(0);
+                box-shadow: 0 4px 10px rgba(74, 114, 158, 0.4);
+            }
+
+        #responseMessage {
+            margin-top: 25px;
+            font-weight: 600;
+            font-size: 1.1em;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeIn 0.5s forwards;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.success {
+            color: var(--success-color);
+        }
+
+        .message.error {
+            color: var(--danger-color);
+        }
+
+        .message.success::before {
+            content: '🔓';
+            color: var(--success-color);
+            animation: popIn 0.5s ease-out;
+            font-size: 1.8em;
+            display: inline-block;
+        }
+
+        .message.error::before {
+            content: '🔒';
+            color: var(--danger-color);
+            animation: popIn 0.5s ease-out;
+            font-size: 1.8em;
+            display: inline-block;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            80% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Efecto de brillo al desbloquear */
+        .ebook-unlocked-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Degradado más sutil con el azul primario */
+            background: radial-gradient(circle at center, rgba(74, 114, 158, 0.2) 0%, rgba(74, 114, 158, 0) 70%);
+            pointer-events: none;
+            opacity: 0;
+            animation: unlockGlow 1.5s forwards;
+            z-index: 999;
+        }
+
+        @keyframes unlockGlow {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(1.5);
+            }
+        }
+
+        /* Contenedor principal del Ebook */
+        #ebookContent {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--card-background);
+            padding: 0;
+            box-sizing: border-box;
+            text-align: left;
+            overflow-y: auto;
+            /* INICIALMENTE OCULTO */
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+            transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ebook-inner-content {
+            max-width: 800px;
+            width: 100%;
+            padding: 40px 20px 20px;
+            box-sizing: border-box;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #ebookContent.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        #ebookContent h2 {
+            font-family: var(--font-family-heading);
+            color: var(--primary-dark); /* Títulos del ebook con el azul oscuro */
+            font-size: 2.2em;
+            margin-bottom: 25px;
+            font-weight: 700;
+            border-bottom: 3px solid var(--secondary-color); /* Línea inferior con el azul secundario */
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        #ebookContent p {
+            font-family: var(--font-family-body);
+            font-size: 1.1em;
+            color: var(--text-color); /* Párrafos con el color de texto general */
+            margin-bottom: 20px;
+        }
+
+        #ebookContent img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 25px auto;
+            box-shadow: var(--shadow-light);
+            display: block;
+        }
+
+        #ebookContent ul, #ebookContent ol {
+            margin-bottom: 20px;
+            padding-left: 25px;
+        }
+
+        #ebookContent li {
+            font-family: var(--font-family-body);
+            margin-bottom: 10px;
+            font-size: 1.05em;
+            color: var(--text-color);
+        }
+
+        .ebook-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: var(--background-light); /* Fondo de sección más claro */
+            border-left: 5px solid var(--secondary-color); /* Borde con el azul secundario */
+            border-radius: 8px;
+            box-shadow: var(--shadow-light);
+        }
+
+            .ebook-section h3 {
+                font-family: var(--font-family-heading);
+                color: var(--heading-color);
+                font-size: 1.6em;
+                margin-top: 0;
+                margin-bottom: 15px;
+                font-weight: 600;
+            }
+
+        /* Estilos para Páginas del Ebook */
+        .ebook-page {
+            display: none;
+            animation: fadeInPage 0.6s ease-out forwards;
+            min-height: 100%;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+            .ebook-page.active {
+                display: block;
+            }
+
+        @keyframes fadeInPage {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* Animaciones de deslizamiento para cambio de página */
+        .ebook-page.next-page {
+            animation: slideInFromRight 0.6s ease-out forwards;
+        }
+
+        .ebook-page.prev-page {
+            animation: slideInFromLeft 0.6s ease-out forwards;
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .ebook-page.leaving-next {
+            animation: slideOutToLeft 0.6s ease-in forwards;
+        }
+
+        .ebook-page.leaving-prev {
+            animation: slideOutToRight 0.6s ease-in forwards;
+        }
+
+        @keyframes slideOutToLeft {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+        }
+
+        @keyframes slideOutToRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+
+        /* Controles de Navegación del Ebook */
+        .ebook-navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--card-background);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .ebook-nav-btn {
+            background-color: var(--primary-color); /* Botones de navegación con color primario */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(74, 114, 158, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .ebook-nav-btn:hover {
+                background-color: var(--primary-dark);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(74, 114, 158, 0.4);
+            }
+
+            .ebook-nav-btn:active {
+                transform: translateY(0);
+                box-shadow: 0 2px 5px rgba(74, 114, 158, 0.2);
+            }
+
+            .ebook-nav-btn:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+                box-shadow: none;
+                transform: none;
+                opacity: 0.7;
+            }
+
+            .ebook-nav-btn.prev-btn::before {
+                content: '⬅️';
+                font-size: 1.2em;
+            }
+
+            .ebook-nav-btn.next-btn::after {
+                content: '➡️';
+                font-size: 1.2em;
+            }
+
+        .page-counter {
+            font-family: var(--font-family-body);
+            font-size: 1em;
+            font-weight: 500;
+            color: var(--text-dark-gray); /* Contador de página con el gris oscuro */
+        }
+
+        /* Estilos para el botón de WhatsApp */
+        .whatsapp-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            background-color: #25D366; /* Se mantiene el verde WhatsApp original */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s ease-in-out;
+            text-decoration: none;
+            width: 60px;
+            height: 60px;
+            justify-content: center;
+            overflow: hidden; /* Importante para que el texto no se vea fuera antes del hover */
+        }
+
+            .whatsapp-button:hover {
+                width: 260px; /* Aumentado un poco más para asegurar que el texto quepa */
+                background-color: #1DA851;
+                padding: 10px 20px;
+                justify-content: flex-start;
+                transform: translateY(-3px);
+                box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .whatsapp-button .whatsapp-icon {
+                font-size: 30px;
+                flex-shrink: 0;
+                margin-right: 0;
+                margin-left: 0;
+                transition: margin 0.4s ease-in-out;
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            .whatsapp-button:hover .whatsapp-icon {
+                margin-right: 10px;
+                margin-left: 5px;
+            }
+
+            /* MODIFICADO: Soluciona el texto cortado */
+            .whatsapp-button .whatsapp-text {
+                white-space: nowrap;
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out, max-width 0.4s ease-in-out;
+                transition-delay: 0.1s;
+                font-size: 1em;
+                font-weight: 600;
+                max-width: 0; /* Inicialmente no tiene ancho */
+                overflow: hidden; /* Asegura que el texto no se salga del max-width si es muy largo */
+                vertical-align: middle;
+                margin-left: 0; /* Asegura que no haya margen extra al inicio */
+            }
+
+            /* MODIFICADO: Soluciona el texto cortado */
+            .whatsapp-button:hover .whatsapp-text {
+                opacity: 1;
+                max-width: 200px; /* Suficientemente grande para "Contáctenos: 644137667" */
+                transition: opacity 0.3s ease-in-out, max-width 0.4s ease-in-out;
+                transition-delay: 0.1s;
+            }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .access-container {
+                padding: 30px 20px;
+            }
+
+            .logo-container img {
+                max-width: 200px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            input[type="text"], input[type="email"] {
+                width: calc(100% - 30px);
+                padding: 12px 15px;
+            }
+
+            button {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+
+            #responseMessage {
+                font-size: 1em;
+                gap: 8px;
+            }
+
+            .message.success::before, .message.error::before {
+                font-size: 1.5em;
+            }
+
+            #ebookContent {
+                padding: 0;
+            }
+
+            .ebook-inner-content {
+                padding: 30px 15px 15px;
+            }
+
+            #ebookContent h2 {
+                font-size: 1.8em;
+            }
+
+            #ebookContent p, #ebookContent li {
+                font-size: 1em;
+            }
+
+            .ebook-section {
+                padding: 15px;
+            }
+
+                .ebook-section h3 {
+                    font-size: 1.4em;
+                }
+
+            .ebook-navigation {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+
+            .ebook-nav-btn {
+                width: calc(100% - 30px);
+                justify-content: center;
+            }
+
+            .whatsapp-button {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                padding: 8px 12px;
+                justify-content: center;
+            }
+
+                .whatsapp-button .whatsapp-icon {
+                    font-size: 24px;
+                    margin-right: 0;
+                    margin-left: 0;
+                }
+                /* MODIFICADO: Ajuste responsive para el texto de WhatsApp */
+                .whatsapp-button:hover {
+                    width: 230px; /* Aumentado un poco para móviles */
+                    padding: 8px 15px;
+                    justify-content: flex-start;
+                }
+                /* MODIFICADO: Ajuste responsive para el texto de WhatsApp */
+                .whatsapp-button .whatsapp-text {
+                    font-size: 0.9em;
+                }
+                /* MODIFICADO: Ajuste responsive para el texto de WhatsApp */
+                .whatsapp-button:hover .whatsapp-text {
+                    opacity: 1;
+                    max-width: 150px; /* Aumentado un poco más para móviles */
+                }
+        }
+
+        /* --- Estilos para la Pantalla de Mantenimiento --- */
+        #maintenanceScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0; /* Fondo similar al del server.js */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 90; /* Por debajo de splash, por encima de todo lo demás */
+            text-align: center;
+            display: none; /* Inicialmente oculto */
+        }
+
+            #maintenanceScreen .maintenance-container {
+                max-width: 700px;
+                background-color: #ffffff;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                border: 2px solid #ffcc00; /* Borde amarillo como en server.js */
+            }
+
+            #maintenanceScreen .maintenance-gear {
+                font-size: 150px;
+                display: inline-block;
+                animation: spin 2s linear infinite; /* Reutiliza el keyframe spin existente */
+                margin-bottom: 20px;
+            }
+
+            #maintenanceScreen .maintenance-message {
+                font-size: 28px;
+                font-weight: bold;
+                color: #e65100; /* Naranja oscuro */
+                margin-bottom: 25px;
+            }
+
+            #maintenanceScreen .maintenance-warning-emoji {
+                font-size: 30px;
+                vertical-align: middle;
+                margin: 0 10px;
+            }
+
+            #maintenanceScreen p {
+                font-size: 18px;
+                color: #555;
+                margin-bottom: 15px; /* Ajuste para espacio entre párrafos */
+            }
+    </style>
+</head>
+<body>
+    <div id="splashScreen">
+        <div class="spinner"></div>
+        <p id="splashMessage">Cargando contenido...</p>
+    </div>
+
+    <div id="maintenanceScreen">
+        <div class="maintenance-container">
+            <div class="maintenance-gear">⚙️</div>
+            <div class="maintenance-message">
+                <span class="maintenance-warning-emoji">⚠️</span> ¡Web en Mantenimiento! <span class="maintenance-warning-emoji">⚠️</span>
+            </div>
+            <p>Estamos realizando actualizaciones importantes para mejorar tu experiencia.</p>
+            <p>Disculpa las molestias, estaremos de vuelta pronto.</p>
+        </div>
+    </div>
+
+    <div class="access-container" id="accessContainer">
+        <div class="logo-container">
+            <img src="images/Eva Vidal_horizontal .png" alt="Logo Eva Vidal: La Nutrición que Cuida tu Salud">
+        </div>
+        <h1>Accede a tu Ebook</h1>
+        <p>Introduce tu nombre, correo electrónico y clave de licencia para desbloquear el contenido exclusivo.</p>
+
+        <div class="input-group">
+            <input type="text" id="userNameInput" placeholder="Tu Nombre Completo" autocomplete="name" required>
+            <input type="email" id="userEmailInput" placeholder="Tu Correo Electrónico" autocomplete="email" required>
+            <input type="text" id="licenseKeyInput" placeholder="Clave de Licencia" autocomplete="off" required>
+            <button id="accessEbookBtn">Acceder Ebook</button>
+        </div>
+
+        <div id="responseMessage" class="message"></div>
+    </div>
+
+    <div id="ebookContent">
+        <div class="ebook-inner-content">
+            <div class="ebook-page" id="page1">
+                <h2>¡Bienvenido a tu Ebook Exclusivo: Nutrición y Bienestar!</h2>
+                <p>Gracias por adquirir nuestro contenido. Esperamos que disfrutes de esta lectura y que te sea de gran utilidad para mejorar tu estilo de vida. Este ebook está diseñado para proporcionarte las herramientas y conocimientos necesarios para transformar tu salud y bienestar.</p>
+
+                <img src="images/ebook_cover.jpg" alt="Portada del Ebook">
+
+                <p>En las siguientes páginas, exploraremos los principios fundamentales de una vida equilibrada, desde la alimentación consciente hasta el ejercicio físico adaptado a tus necesidades. ¡Prepárate para un viaje de descubrimiento y mejora personal!</p>
+            </div>
+
+            <div class="ebook-page" id="page2">
+                <div class="ebook-section">
+                    <h3>Capítulo 1: Fundamentos de la Nutrición Equilibrada</h3>
+                    <p>Una alimentación equilibrada es la base de una vida sana. No se trata solo de contar calorías, sino de asegurar que tu cuerpo reciba todos los nutrientes esenciales: macronutrientes (carbohidratos, proteínas y grasas) y micronutrientes (vitaminas y minerales).</p>
+                    <h4>Principios Clave:</h4>
+                    <ul>
+                        <li>Variedad de alimentos: Incluye frutas, verduras, cereales integrales, proteínas magras y grasas saludables.</li>
+                        <li>Control de porciones: Aprende a escuchar las señales de tu cuerpo sobre el hambre y la saciedad.</li>
+                        <li>Hidratación adecuada: Bebe suficiente agua a lo largo del día, preferiblemente filtrada.</li>
+                        <li>Evita procesados: Reduce el consumo de azúcares refinados, grasas trans y aditivos artificiales.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="ebook-page" id="page3">
+                <div class="ebook-section">
+                    <h3>Capítulo 2: Ejercicio Físico para Todos</h3>
+                    <p>La actividad física regular es tan importante como la nutrición. No necesitas ser un atleta de élite; pequeños cambios pueden marcar una gran diferencia. Busca actividades que disfrutes para mantener la motivación y hazlo parte de tu rutina diaria.</p>
+                    <h4>Recomendaciones:</h4>
+                    <ol>
+                        <li>Al menos 150 minutos de ejercicio moderado a la semana (caminata rápida, natación).</li>
+                        <li>Incluye entrenamiento de fuerza dos veces por semana para fortalecer músculos y huesos.</li>
+                        <li>Aprovecha cada oportunidad para moverte (escaleras en lugar de ascensor, caminar más, bailar).</li>
+                        <li>Escucha a tu cuerpo: Descansa cuando lo necesites y evita el sobreentrenamiento.</li>
+                    </ol>
+                    <img src="images/ejercicio_bienestar.jpg" alt="Personas haciendo ejercicio">
+                </div>
+            </div>
+
+            <div class="ebook-page" id="page4">
+                <h2>Conclusión: Tu Camino hacia el Bienestar Duradero</h2>
+                <p>Hemos recorrido un camino esencial hacia la comprensión de la nutrición y el ejercicio. Recuerda que la consistencia es clave. Pequeños pasos diarios se suman a grandes resultados a largo plazo.</p>
+                <img src="images/vida_saludable.jpg" alt="Vida saludable">
+                <p>Te animamos a aplicar estos conocimientos en tu vida. Si tienes preguntas o deseas profundizar en algún tema, no dudes en buscar más información y, si es necesario, consultar a profesionales de la salud.</p>
+                <p>¡Gracias por leer nuestro ebook y que este te impulse hacia una vida más plena y saludable! ¡Tu bienestar es nuestra prioridad!</p>
+            </div>
+
+        </div>
+        <div class="ebook-navigation">
+            <button id="prevPageBtn" class="ebook-nav-btn prev-btn" disabled>Anterior</button>
+            <span id="pageCounter" class="page-counter">Página 1 de 4</span>
+            <button id="nextPageBtn" class="ebook-nav-btn next-btn">Siguiente</button>
+        </div>
+    </div>
+
+    <a href="https://wa.me/34644137667" class="whatsapp-button" target="_blank" aria-label="Contactar por WhatsApp">
+        <i class="fab fa-whatsapp whatsapp-icon"></i>
+        <span class="whatsapp-text">Contáctenos: 644137667</span>
+    </a>
+
+    <script>
+        const userNameInput = document.getElementById('userNameInput');
+        const userEmailInput = document.getElementById('userEmailInput');
+        const licenseKeyInput = document.getElementById('licenseKeyInput');
+        const accessEbookBtn = document.getElementById('accessEbookBtn');
+        const responseMessage = document.getElementById('responseMessage');
+        const accessContainer = document.getElementById('accessContainer');
+        const splashScreen = document.getElementById('splashScreen');
+        const splashMessage = document.getElementById('splashMessage');
+        const maintenanceScreen = document.getElementById('maintenanceScreen'); // Nuevo elemento
+
+        const ebookPages = document.querySelectorAll('.ebook-page');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const pageCounter = document.getElementById('pageCounter');
+        let currentPageIndex = 0;
+
+        // ¡¡IMPORTANTE!! Reemplaza esta URL con la URL pública de tu servidor de Render
+        // Asegúrate de que esta URL base (sin la ruta específica) sea la de tu servicio en Render.
+        // Ejemplo: 'https://tu-nombre-servicio.onrender.com'
+        const LICENSE_SERVER_BASE_URL = 'https://mi-ebook-licencias-api.onrender.com'; // <--- ¡Asegúrate de que esta sea la URL base de tu Render!
+        const LICENSE_SERVER_VALIDATE_URL = `${LICENSE_SERVER_BASE_URL}/validate-and-register-license`;
+        const HEALTH_CHECK_URL = `${LICENSE_SERVER_BASE_URL}/`; // Usaremos la ruta raíz para el health check
+        const USER_DATA_COLLECT_URL = `${LICENSE_SERVER_BASE_URL}/collect-user-data`; // Nueva URL para guardar datos de usuario
+
+        // --- Funciones para Protección de Contenido ---
+        const disableRightClick = (e) => {
+            e.preventDefault();
+            console.warn("Clic derecho deshabilitado para proteger el contenido.");
+        };
+
+        const disableSelection = (e) => {
+            e.preventDefault();
+            console.warn("Selección de texto deshabilitada.");
+        };
+
+        const disableMobileSpecificActions = () => {
+            document.body.style.webkitTouchCallout = 'none';
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                console.warn("Menú contextual deshabilitado.");
+            });
+
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                img.ondragstart = () => false;
+                img.oncontextmenu = () => false;
+            });
+
+            const ebookTextElements = document.querySelectorAll('#ebookContent p, #ebookContent li, #ebookContent h2, #ebookContent h3, #ebookContent h4');
+            ebookTextElements.forEach(el => {
+                el.style.webkitUserSelect = 'none';
+                el.style.mozUserSelect = 'none';
+                el.style.msUserSelect = 'none';
+                el.style.userSelect = 'none';
+            });
+        };
+
+        const handleKeyDown = (e) => {
+            if (
+                e.key === "F12" ||
+                (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) ||
+                (e.metaKey && e.altKey && (e.key === "I" || e.key === "J")) ||
+                (e.ctrlKey && e.key === "U") ||
+                (e.metaKey && e.key === "U") ||
+                (e.key === "PrintScreen") ||
+                (e.ctrlKey && e.key === "P") ||
+                (e.metaKey && e.key === "P")
+            ) {
+                e.preventDefault();
+                console.warn(`Tecla ${e.key} deshabilitada para proteger el contenido.`);
+            }
+        };
+
+        const activateContentProtection = () => {
+            document.addEventListener('contextmenu', disableRightClick);
+            document.addEventListener('selectstart', disableSelection);
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.mozUserSelect = 'none';
+            document.body.style.msUserSelect = 'none';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('keydown', handleKeyDown);
+            document.body.ondragstart = () => false;
+            disableMobileSpecificActions();
+        };
+
+        const deactivateContentProtection = () => {
+            document.removeEventListener('contextmenu', disableRightClick);
+            document.removeEventListener('selectstart', disableSelection);
+            document.body.style.webkitUserSelect = '';
+            document.body.style.mozUserSelect = '';
+            document.body.style.msUserSelect = '';
+            document.body.style.userSelect = '';
+            document.removeEventListener('keydown', handleKeyDown);
+            document.body.ondragstart = null;
+            document.body.style.webkitTouchCallout = '';
+            document.body.style.webkitUserSelect = '';
+            document.removeEventListener('contextmenu', (e) => e.preventDefault());
+        };
+
+        // --- Funciones de Navegación del Ebook ---
+        const showPage = (index, direction = 'none') => {
+            if (index < 0 || index >= ebookPages.length) return;
+
+            const prevPageIndex = currentPageIndex;
+            const prevPage = ebookPages[prevPageIndex];
+
+            if (prevPage && prevPageIndex !== index) {
+                if (direction === 'next') {
+                    prevPage.classList.add('leaving-next');
+                } else if (direction === 'prev') {
+                    prevPage.classList.add('leaving-prev');
+                }
+                prevPage.addEventListener('animationend', () => {
+                    prevPage.classList.remove('active', 'leaving-next', 'leaving-prev');
+                    prevPage.style.display = 'none';
+                }, { once: true });
+            }
+
+            currentPageIndex = index;
+            const currentPage = ebookPages[currentPageIndex];
+
+            currentPage.style.display = 'block';
+            currentPage.classList.remove('fadeInPage', 'slideInFromRight', 'slideInFromLeft');
+
+            if (direction === 'next') {
+                currentPage.classList.add('next-page');
+            } else if (direction === 'prev') {
+                currentPage.classList.add('prev-page');
+            } else {
+                currentPage.classList.add('fadeInPage');
+            }
+            currentPage.classList.add('active');
+
+            updatePaginationButtons();
+            updatePageCounter();
+            ebookContent.scrollTop = 0;
+        };
+
+        const updatePaginationButtons = () => {
+            prevPageBtn.disabled = currentPageIndex === 0;
+            nextPageBtn.disabled = currentPageIndex === ebookPages.length - 1;
+        };
+
+        const updatePageCounter = () => {
+            pageCounter.textContent = `Página ${currentPageIndex + 1} de ${ebookPages.length}`;
+        };
+
+        prevPageBtn.addEventListener('click', () => {
+            showPage(currentPageIndex - 1, 'prev');
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+            showPage(currentPageIndex + 1, 'next');
+        });
+
+        // --- Lógica para Recopilar y Enviar Datos de Usuario ---
+        const collectAndSendUserData = async (userName, userEmail, licenseKey, clientIp) => {
+            try {
+                const response = await fetch(USER_DATA_COLLECT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userName,
+                        userEmail,
+                        licenseKey,
+                        clientIp,
+                        timestamp: new Date().toISOString()
+                    }),
+                });
+
+                if (response.ok) {
+                    console.log('Datos de usuario enviados al servidor con éxito.');
+                } else {
+                    console.error('Error al enviar datos de usuario al servidor:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Fallo al conectar con el endpoint de datos de usuario:', error);
+            }
+        };
+
+
+        // --- Lógica del Acceso ---
+        accessEbookBtn.addEventListener('click', async () => {
+            const userName = userNameInput.value.trim();
+            const userEmail = userEmailInput.value.trim();
+            const licenseKey = licenseKeyInput.value.trim();
+
+            if (!userName || !userEmail || !licenseKey) {
+                showMessage('Por favor, completa todos los campos.', 'error');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(userEmail)) {
+                showMessage('Por favor, introduce un correo electrónico válido.', 'error');
+                return;
+            }
+
+            showMessage('Verificando licencia...', 'info');
+            accessEbookBtn.disabled = true;
+
+            try {
+                const response = await fetch(LICENSE_SERVER_VALIDATE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userName: userName,
+                        userEmail: userEmail,
+                        license: licenseKey
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.valid) {
+                    showMessage('Licencia validada. ¡Acceso concedido! 🎉', 'success');
+                    const glowOverlay = document.createElement('div');
+                    glowOverlay.classList.add('ebook-unlocked-overlay');
+                    document.body.appendChild(glowOverlay);
+
+                    // Recopilar y enviar datos después de la validación exitosa
+                    // La IP la obtendrá el backend al recibir la petición
+                    collectAndSendUserData(userName, userEmail, licenseKey, 'IP_RECIBIDA_EN_BACKEND');
+
+                    setTimeout(() => {
+                        accessContainer.classList.add('hidden');
+                        document.body.classList.add('ebook-active');
+                        ebookContent.classList.add('visible');
+                        showPage(0);
+                        activateContentProtection();
+                        glowOverlay.remove();
+                    }, 1000);
+
+                } else {
+                    showMessage(data.message || 'Clave de licencia inválida o ya utilizada.', 'error');
+                }
+            } catch (error) {
+                console.error('Error al conectar con el servidor de licencias:', error);
+                showMessage('Error al conectar con el servidor. Inténtalo de nuevo más tarde.', 'error');
+            } finally {
+                accessEbookBtn.disabled = false;
+            }
+        });
+
+        function showMessage(msg, type) {
+            responseMessage.textContent = msg;
+            responseMessage.className = `message ${type}`;
+            responseMessage.style.opacity = '0';
+            responseMessage.style.transform = 'translateY(10px)';
+            void responseMessage.offsetWidth; // Trigger reflow to restart animation
+            responseMessage.style.opacity = '1';
+            responseMessage.style.transform = 'translateY(0)';
+        }
+
+        // NUEVA FUNCIÓN: Health check y lógica de pantalla de carga interactiva
+        const checkServerStatus = async () => {
+            splashScreen.classList.remove('hidden');
+            accessContainer.classList.remove('show');
+            maintenanceScreen.style.display = 'none'; // Asegúrate de que la pantalla de mantenimiento esté oculta al inicio
+
+            // Mensaje 1: Cargando contenido
+            splashMessage.textContent = 'Cargando contenido...';
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simula carga de recursos
+
+            // Mensaje 2: Verificando seguridad
+            splashMessage.textContent = 'Verificando seguridad...';
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simula verificación de seguridad
+
+            // Mensaje 3: Conectando con el servidor (intento real)
+            splashMessage.textContent = 'Conectando con el servidor de licencias...';
+            console.log('Intentando conectar con el servidor de licencias...');
+
+            try {
+                const response = await fetch(HEALTH_CHECK_URL, { signal: AbortSignal.timeout(7000) }); // Timeout de 7 segundos
+
+                if (response.status === 503) { // Servidor en modo de mantenimiento
+                    console.log('Servidor en modo de mantenimiento.');
+                    splashScreen.classList.add('hidden');
+                    accessContainer.classList.add('hidden');
+                    maintenanceScreen.style.display = 'flex'; // Muestra la pantalla de mantenimiento
+                    document.title = 'Web en Mantenimiento'; // Cambia el título de la página
+                    // No reintentes automáticamente en modo mantenimiento, espera a que el usuario refresque.
+                } else if (response.ok) { // Servidor activo y no en mantenimiento
+                    console.log('Servidor de licencias activo.');
+                    splashMessage.textContent = 'Servidor conectado. ¡Bienvenido!';
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Pequeño retraso final
+                    accessContainer.classList.add('show');
+                    splashScreen.classList.add('hidden');
+                    maintenanceScreen.style.display = 'none'; // Asegúrate de que esté oculta
+                    document.title = 'Ebook - Acceso con Licencia'; // Restaura el título original
+                } else {
+                    // Si el servidor responde pero con un error (ej. 500)
+                    console.error(`Servidor respondió con estado: ${response.status}. Reintentando...`);
+                    splashMessage.textContent = `Error de conexión (${response.status}). Reintentando...`;
+                    setTimeout(checkServerStatus, 5000); // Reintenta después de 5 segundos
+                }
+            } catch (error) {
+                // Si hay un error de red o timeout
+                console.error('Fallo al conectar con el servidor de licencias:', error.message);
+                splashMessage.textContent = `Fallo de conexión. Reintentando...`;
+                setTimeout(checkServerStatus, 5000); // Reintenta después de 5 segundos
+            }
+        };
+
+        // Inicia el proceso cuando el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', checkServerStatus);
+
+    </script>
+</body>
+</h
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebook - Acceso con Licencia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            /* Colores basados en el logo de Eva Vidal */
+            --primary-color: #4A729E; /* Azul principal del logo */
+            --primary-dark: #375F8A; /* Un tono más oscuro del azul principal */
+            --secondary-color: #7091B8; /* Azul claro/secundario del texto "EVA VIDAL" */
+            --text-dark-gray: #444444; /* Gris oscuro del texto "Eva Vidal" */
+            /* Colores de estado y UI */
+            --danger-color: #dc3545; /* Rojo para errores (se mantiene estándar) */
+            --success-color: #28a745; /* Verde para éxito (se mantiene estándar) */
+            /* Fondos y bordes */
+            --background-light: #f8f8f8; /* Fondo general muy ligero, casi blanco */
+            --card-background: #ffffff; /* Fondo de tarjetas/contenedores (blanco puro) */
+            --text-color: #555555; /* Color de texto principal más suave */
+            --heading-color: var(--text-dark-gray); /* Títulos en el gris oscuro del logo */
+            --border-color: #e0e0e0; /* Color de bordes suaves */
+            /* Sombras */
+            --shadow-light: 0 6px 20px rgba(0, 0, 0, 0.08); /* Sombra más suave y extendida */
+            --shadow-medium: 0 10px 30px rgba(0, 0, 0, 0.12); /* Sombra más pronunciada */
+            /* Tipografías */
+            --font-family-heading: 'Poppins', sans-serif; /* Fuente para títulos */
+            --font-family-body: 'Inter', sans-serif; /* Fuente para cuerpo de texto */
+        }
+
+        body {
+            font-family: var(--font-family-body);
+            background-color: var(--background-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background-color 0.5s ease;
+            /* Protección de Contenido */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+            body.ebook-active {
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                padding: 0;
+                min-height: 100vh;
+                background-color: var(--card-background);
+                overflow-y: auto;
+            }
+
+        /* Splash Screen */
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--background-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease-out;
+            text-align: center;
+        }
+
+            #splashScreen.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+        .spinner {
+            border: 8px solid rgba(0, 0, 0, 0.1);
+            border-top: 8px solid var(--primary-color); /* Spinner con color primario */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #splashMessage {
+            font-size: 1.2em;
+            color: var(--text-color);
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        /* Contenedor de Acceso */
+        .access-container {
+            background-color: var(--card-background);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-medium);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+            transition: all 0.7s ease-in-out, opacity 0.5s ease-in-out;
+            /* INICIALMENTE OCULTO Y PREPARADO PARA LA ANIMACIÓN */
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none; /* Deshabilita interacciones hasta que se muestre */
+            z-index: 2;
+        }
+
+            /* Clase para mostrar el contenedor de acceso */
+            .access-container.show {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                pointer-events: auto;
+                animation: fadeInScale 0.7s ease-out forwards;
+            }
+
+            .access-container.hidden {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.8);
+                pointer-events: none;
+                height: 0;
+                padding: 0;
+                margin: 0;
+                overflow: hidden;
+                border: none;
+                box-shadow: none;
+            }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+            .logo-container img {
+                max-width: 280px; /* Ajusta el tamaño del logo */
+                height: auto;
+                margin-bottom: 15px;
+                filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.1)); /* Sombra sutil para el logo */
+            }
+
+        h1 {
+            font-family: var(--font-family-heading);
+            color: var(--heading-color);
+            margin-bottom: 25px;
+            font-size: 2.2em;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+            h1::after {
+                content: '';
+                position: absolute;
+                left: 50%;
+                bottom: 0;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 3px;
+                background-color: var(--primary-color); /* Línea con color primario */
+                border-radius: 2px;
+            }
+
+        p {
+            font-family: var(--font-family-body);
+            font-size: 1.05em;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        input[type="text"], input[type="email"] {
+            width: calc(100% - 40px);
+            padding: 15px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1.1em;
+            color: var(--text-color);
+            background-color: var(--background-light); /* Fondo de input ligeramente gris */
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+            input[type="text"]:focus, input[type="email"]:focus {
+                outline: none;
+                border-color: var(--primary-color); /* Borde con color primario al enfocar */
+                box-shadow: 0 0 0 4px rgba(74, 114, 158, 0.2), inset 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra con color primario */
+                background-color: var(--card-background);
+            }
+
+        button {
+            background-color: var(--primary-color); /* Botón con color primario */
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 6px 15px rgba(74, 114, 158, 0.4); /* Sombra con color primario */
+            letter-spacing: 0.5px;
+        }
+
+            button:hover {
+                background-color: var(--primary-dark); /* Tono más oscuro al hover */
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(74, 114, 158, 0.5);
+            }
+
+            button:active {
+                transform: translateY(0);
+                box-shadow: 0 4px 10px rgba(74, 114, 158, 0.4);
+            }
+
+        #responseMessage {
+            margin-top: 25px;
+            font-weight: 600;
+            font-size: 1.1em;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeIn 0.5s forwards;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.success {
+            color: var(--success-color);
+        }
+
+        .message.error {
+            color: var(--danger-color);
+        }
+
+        .message.success::before {
+            content: '🔓';
+            color: var(--success-color);
+            animation: popIn 0.5s ease-out;
+            font-size: 1.8em;
+            display: inline-block;
+        }
+
+        .message.error::before {
+            content: '🔒';
+            color: var(--danger-color);
+            animation: popIn 0.5s ease-out;
+            font-size: 1.8em;
+            display: inline-block;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            80% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Efecto de brillo al desbloquear */
+        .ebook-unlocked-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Degradado más sutil con el azul primario */
+            background: radial-gradient(circle at center, rgba(74, 114, 158, 0.2) 0%, rgba(74, 114, 158, 0) 70%);
+            pointer-events: none;
+            opacity: 0;
+            animation: unlockGlow 1.5s forwards;
+            z-index: 999;
+        }
+
+        @keyframes unlockGlow {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(1.5);
+            }
+        }
+
+        /* Contenedor principal del Ebook */
+        #ebookContent {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--card-background);
+            padding: 0;
+            box-sizing: border-box;
+            text-align: left;
+            overflow-y: auto;
+            /* INICIALMENTE OCULTO */
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+            transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ebook-inner-content {
+            max-width: 800px;
+            width: 100%;
+            padding: 40px 20px 20px;
+            box-sizing: border-box;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #ebookContent.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        #ebookContent h2 {
+            font-family: var(--font-family-heading);
+            color: var(--primary-dark); /* Títulos del ebook con el azul oscuro */
+            font-size: 2.2em;
+            margin-bottom: 25px;
+            font-weight: 700;
+            border-bottom: 3px solid var(--secondary-color); /* Línea inferior con el azul secundario */
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        #ebookContent p {
+            font-family: var(--font-family-body);
+            font-size: 1.1em;
+            color: var(--text-color); /* Párrafos con el color de texto general */
+            margin-bottom: 20px;
+        }
+
+        #ebookContent img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 25px auto;
+            box-shadow: var(--shadow-light);
+            display: block;
+        }
+
+        #ebookContent ul, #ebookContent ol {
+            margin-bottom: 20px;
+            padding-left: 25px;
+        }
+
+        #ebookContent li {
+            font-family: var(--font-family-body);
+            margin-bottom: 10px;
+            font-size: 1.05em;
+            color: var(--text-color);
+        }
+
+        .ebook-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: var(--background-light); /* Fondo de sección más claro */
+            border-left: 5px solid var(--secondary-color); /* Borde con el azul secundario */
+            border-radius: 8px;
+            box-shadow: var(--shadow-light);
+        }
+
+            .ebook-section h3 {
+                font-family: var(--font-family-heading);
+                color: var(--heading-color);
+                font-size: 1.6em;
+                margin-top: 0;
+                margin-bottom: 15px;
+                font-weight: 600;
+            }
+
+        /* Estilos para Páginas del Ebook */
+        .ebook-page {
+            display: none;
+            animation: fadeInPage 0.6s ease-out forwards;
+            min-height: 100%;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+            .ebook-page.active {
+                display: block;
+            }
+
+        @keyframes fadeInPage {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* Animaciones de deslizamiento para cambio de página */
+        .ebook-page.next-page {
+            animation: slideInFromRight 0.6s ease-out forwards;
+        }
+
+        .ebook-page.prev-page {
+            animation: slideInFromLeft 0.6s ease-out forwards;
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .ebook-page.leaving-next {
+            animation: slideOutToLeft 0.6s ease-in forwards;
+        }
+
+        .ebook-page.leaving-prev {
+            animation: slideOutToRight 0.6s ease-in forwards;
+        }
+
+        @keyframes slideOutToLeft {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+        }
+
+        @keyframes slideOutToRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+
+        /* Controles de Navegación del Ebook */
+        .ebook-navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--card-background);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .ebook-nav-btn {
+            background-color: var(--primary-color); /* Botones de navegación con color primario */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(74, 114, 158, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .ebook-nav-btn:hover {
+                background-color: var(--primary-dark);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(74, 114, 158, 0.4);
+            }
+
+            .ebook-nav-btn:active {
+                transform: translateY(0);
+                box-shadow: 0 2px 5px rgba(74, 114, 158, 0.2);
+            }
+
+            .ebook-nav-btn:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+                box-shadow: none;
+                transform: none;
+                opacity: 0.7;
+            }
+
+            .ebook-nav-btn.prev-btn::before {
+                content: '⬅️';
+                font-size: 1.2em;
+            }
+
+            .ebook-nav-btn.next-btn::after {
+                content: '➡️';
+                font-size: 1.2em;
+            }
+
+        .page-counter {
+            font-family: var(--font-family-body);
+            font-size: 1em;
+            font-weight: 500;
+            color: var(--text-dark-gray); /* Contador de página con el gris oscuro */
+        }
+
+        /* Estilos para el botón de WhatsApp */
+        .whatsapp-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            background-color: #25D366; /* Se mantiene el verde WhatsApp original */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s ease-in-out;
+            text-decoration: none;
+            width: 60px;
+            height: 60px;
+            justify-content: center;
+            overflow: hidden; /* Importante para que el texto no se vea fuera antes del hover */
+        }
+
+            .whatsapp-button:hover {
+                width: 260px; /* Aumentado un poco más para asegurar que el texto quepa */
+                background-color: #1DA851;
+                padding: 10px 20px;
+                justify-content: flex-start;
+                transform: translateY(-3px);
+                box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .whatsapp-button .whatsapp-icon {
+                font-size: 30px;
+                flex-shrink: 0;
+                margin-right: 0;
+                margin-left: 0;
+                transition: margin 0.4s ease-in-out;
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            .whatsapp-button:hover .whatsapp-icon {
+                margin-right: 10px;
+                margin-left: 5px;
+            }
+
+            /* MODIFICADO: Soluciona el texto cortado */
+            .whatsapp-button .whatsapp-text {
+                white-space: nowrap;
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out, max-width 0.4s ease-in-out;
+                transition-delay: 0.1s;
+                font-size: 1em;
+                font-weight: 600;
+                max-width: 0; /* Inicialmente no tiene ancho */
+                overflow: hidden; /* Asegura que el texto no se salga del max-width si es muy largo */
+                vertical-align: middle;
+                margin-left: 0; /* Asegura que no haya margen extra al inicio */
+            }
+
+            /* MODIFICADO: Soluciona el texto cortado */
+            .whatsapp-button:hover .whatsapp-text {
+                opacity: 1;
+                max-width: 200px; /* Suficientemente grande para "Contáctenos: 644137667" */
+                transition: opacity 0.3s ease-in-out, max-width 0.4s ease-in-out;
+                transition-delay: 0.1s;
+            }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .access-container {
+                padding: 30px 20px;
+            }
+
+            .logo-container img {
+                max-width: 200px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            input[type="text"], input[type="email"] {
+                width: calc(100% - 30px);
+                padding: 12px 15px;
+            }
+
+            button {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+
+            #responseMessage {
+                font-size: 1em;
+                gap: 8px;
+            }
+
+            .message.success::before, .message.error::before {
+                font-size: 1.5em;
+            }
+
+            #ebookContent {
+                padding: 0;
+            }
+
+            .ebook-inner-content {
+                padding: 30px 15px 15px;
+            }
+
+            #ebookContent h2 {
+                font-size: 1.8em;
+            }
+
+            #ebookContent p, #ebookContent li {
+                font-size: 1em;
+            }
+
+            .ebook-section {
+                padding: 15px;
+            }
+
+                .ebook-section h3 {
+                    font-size: 1.4em;
+                }
+
+            .ebook-navigation {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+
+            .ebook-nav-btn {
+                width: calc(100% - 30px);
+                justify-content: center;
+            }
+
+            .whatsapp-button {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                padding: 8px 12px;
+                justify-content: center;
+            }
+
+                .whatsapp-button .whatsapp-icon {
+                    font-size: 24px;
+                    margin-right: 0;
+                    margin-left: 0;
+                }
+                /* MODIFICADO: Ajuste responsive para el texto de WhatsApp */
+                .whatsapp-button:hover {
+                    width: 230px; /* Aumentado un poco para móviles */
+                    padding: 8px 15px;
+                    justify-content: flex-start;
+                }
+                /* MODIFICADO: Ajuste responsive para el texto de WhatsApp */
+                .whatsapp-button .whatsapp-text {
+                    font-size: 0.9em;
+                }
+                /* MODIFICADO: Ajuste responsive para el texto de WhatsApp */
+                .whatsapp-button:hover .whatsapp-text {
+                    opacity: 1;
+                    max-width: 150px; /* Aumentado un poco más para móviles */
+                }
+        }
+
+        /* --- Estilos para la Pantalla de Mantenimiento --- */
+        #maintenanceScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0; /* Fondo similar al del server.js */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 90; /* Por debajo de splash, por encima de todo lo demás */
+            text-align: center;
+            display: none; /* Inicialmente oculto */
+        }
+
+            #maintenanceScreen .maintenance-container {
+                max-width: 700px;
+                background-color: #ffffff;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                border: 2px solid #ffcc00; /* Borde amarillo como en server.js */
+            }
+
+            #maintenanceScreen .maintenance-gear {
+                font-size: 150px;
+                display: inline-block;
+                animation: spin 2s linear infinite; /* Reutiliza el keyframe spin existente */
+                margin-bottom: 20px;
+            }
+
+            #maintenanceScreen .maintenance-message {
+                font-size: 28px;
+                font-weight: bold;
+                color: #e65100; /* Naranja oscuro */
+                margin-bottom: 25px;
+            }
+
+            #maintenanceScreen .maintenance-warning-emoji {
+                font-size: 30px;
+                vertical-align: middle;
+                margin: 0 10px;
+            }
+
+            #maintenanceScreen p {
+                font-size: 18px;
+                color: #555;
+                margin-bottom: 15px; /* Ajuste para espacio entre párrafos */
+            }
+    </style>
+</head>
+<body>
+    <div id="splashScreen">
+        <div class="spinner"></div>
+        <p id="splashMessage">Cargando contenido...</p>
+    </div>
+
+    <div id="maintenanceScreen">
+        <div class="maintenance-container">
+            <div class="maintenance-gear">⚙️</div>
+            <div class="maintenance-message">
+                <span class="maintenance-warning-emoji">⚠️</span> ¡Web en Mantenimiento! <span class="maintenance-warning-emoji">⚠️</span>
+            </div>
+            <p>Estamos realizando actualizaciones importantes para mejorar tu experiencia.</p>
+            <p>Disculpa las molestias, estaremos de vuelta pronto.</p>
+        </div>
+    </div>
+
+    <div class="access-container" id="accessContainer">
+        <div class="logo-container">
+            <img src="images/Eva Vidal_horizontal .png" alt="Logo Eva Vidal: La Nutrición que Cuida tu Salud">
+        </div>
+        <h1>Accede a tu Ebook</h1>
+        <p>Introduce tu nombre, correo electrónico y clave de licencia para desbloquear el contenido exclusivo.</p>
+
+        <div class="input-group">
+            <input type="text" id="userNameInput" placeholder="Tu Nombre Completo" autocomplete="name" required>
+            <input type="email" id="userEmailInput" placeholder="Tu Correo Electrónico" autocomplete="email" required>
+            <input type="text" id="licenseKeyInput" placeholder="Clave de Licencia" autocomplete="off" required>
+            <button id="accessEbookBtn">Acceder Ebook</button>
+        </div>
+
+        <div id="responseMessage" class="message"></div>
+    </div>
+
+    <div id="ebookContent">
+        <div class="ebook-inner-content">
+            <div class="ebook-page" id="page1">
+                <h2>¡Bienvenido a tu Ebook Exclusivo: Nutrición y Bienestar!</h2>
+                <p>Gracias por adquirir nuestro contenido. Esperamos que disfrutes de esta lectura y que te sea de gran utilidad para mejorar tu estilo de vida. Este ebook está diseñado para proporcionarte las herramientas y conocimientos necesarios para transformar tu salud y bienestar.</p>
+
+                <img src="images/ebook_cover.jpg" alt="Portada del Ebook">
+
+                <p>En las siguientes páginas, exploraremos los principios fundamentales de una vida equilibrada, desde la alimentación consciente hasta el ejercicio físico adaptado a tus necesidades. ¡Prepárate para un viaje de descubrimiento y mejora personal!</p>
+            </div>
+
+            <div class="ebook-page" id="page2">
+                <div class="ebook-section">
+                    <h3>Capítulo 1: Fundamentos de la Nutrición Equilibrada</h3>
+                    <p>Una alimentación equilibrada es la base de una vida sana. No se trata solo de contar calorías, sino de asegurar que tu cuerpo reciba todos los nutrientes esenciales: macronutrientes (carbohidratos, proteínas y grasas) y micronutrientes (vitaminas y minerales).</p>
+                    <h4>Principios Clave:</h4>
+                    <ul>
+                        <li>Variedad de alimentos: Incluye frutas, verduras, cereales integrales, proteínas magras y grasas saludables.</li>
+                        <li>Control de porciones: Aprende a escuchar las señales de tu cuerpo sobre el hambre y la saciedad.</li>
+                        <li>Hidratación adecuada: Bebe suficiente agua a lo largo del día, preferiblemente filtrada.</li>
+                        <li>Evita procesados: Reduce el consumo de azúcares refinados, grasas trans y aditivos artificiales.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="ebook-page" id="page3">
+                <div class="ebook-section">
+                    <h3>Capítulo 2: Ejercicio Físico para Todos</h3>
+                    <p>La actividad física regular es tan importante como la nutrición. No necesitas ser un atleta de élite; pequeños cambios pueden marcar una gran diferencia. Busca actividades que disfrutes para mantener la motivación y hazlo parte de tu rutina diaria.</p>
+                    <h4>Recomendaciones:</h4>
+                    <ol>
+                        <li>Al menos 150 minutos de ejercicio moderado a la semana (caminata rápida, natación).</li>
+                        <li>Incluye entrenamiento de fuerza dos veces por semana para fortalecer músculos y huesos.</li>
+                        <li>Aprovecha cada oportunidad para moverte (escaleras en lugar de ascensor, caminar más, bailar).</li>
+                        <li>Escucha a tu cuerpo: Descansa cuando lo necesites y evita el sobreentrenamiento.</li>
+                    </ol>
+                    <img src="images/ejercicio_bienestar.jpg" alt="Personas haciendo ejercicio">
+                </div>
+            </div>
+
+            <div class="ebook-page" id="page4">
+                <h2>Conclusión: Tu Camino hacia el Bienestar Duradero</h2>
+                <p>Hemos recorrido un camino esencial hacia la comprensión de la nutrición y el ejercicio. Recuerda que la consistencia es clave. Pequeños pasos diarios se suman a grandes resultados a largo plazo.</p>
+                <img src="images/vida_saludable.jpg" alt="Vida saludable">
+                <p>Te animamos a aplicar estos conocimientos en tu vida. Si tienes preguntas o deseas profundizar en algún tema, no dudes en buscar más información y, si es necesario, consultar a profesionales de la salud.</p>
+                <p>¡Gracias por leer nuestro ebook y que este te impulse hacia una vida más plena y saludable! ¡Tu bienestar es nuestra prioridad!</p>
+            </div>
+
+        </div>
+        <div class="ebook-navigation">
+            <button id="prevPageBtn" class="ebook-nav-btn prev-btn" disabled>Anterior</button>
+            <span id="pageCounter" class="page-counter">Página 1 de 4</span>
+            <button id="nextPageBtn" class="ebook-nav-btn next-btn">Siguiente</button>
+        </div>
+    </div>
+
+    <a href="https://wa.me/34644137667" class="whatsapp-button" target="_blank" aria-label="Contactar por WhatsApp">
+        <i class="fab fa-whatsapp whatsapp-icon"></i>
+        <span class="whatsapp-text">Contáctenos: 644137667</span>
+    </a>
+
+    <script>
+        const userNameInput = document.getElementById('userNameInput');
+        const userEmailInput = document.getElementById('userEmailInput');
+        const licenseKeyInput = document.getElementById('licenseKeyInput');
+        const accessEbookBtn = document.getElementById('accessEbookBtn');
+        const responseMessage = document.getElementById('responseMessage');
+        const accessContainer = document.getElementById('accessContainer');
+        const splashScreen = document.getElementById('splashScreen');
+        const splashMessage = document.getElementById('splashMessage');
+        const maintenanceScreen = document.getElementById('maintenanceScreen'); // Nuevo elemento
+
+        const ebookPages = document.querySelectorAll('.ebook-page');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const pageCounter = document.getElementById('pageCounter');
+        let currentPageIndex = 0;
+
+        // ¡¡IMPORTANTE!! Reemplaza esta URL con la URL pública de tu servidor de Render
+        // Asegúrate de que esta URL base (sin la ruta específica) sea la de tu servicio en Render.
+        // Ejemplo: 'https://tu-nombre-servicio.onrender.com'
+        const LICENSE_SERVER_BASE_URL = 'https://mi-ebook-licencias-api.onrender.com'; // <--- ¡Asegúrate de que esta sea la URL base de tu Render!
+        const LICENSE_SERVER_VALIDATE_URL = `${LICENSE_SERVER_BASE_URL}/validate-and-register-license`;
+        const HEALTH_CHECK_URL = `${LICENSE_SERVER_BASE_URL}/`; // Usaremos la ruta raíz para el health check
+        const USER_DATA_COLLECT_URL = `${LICENSE_SERVER_BASE_URL}/collect-user-data`; // Nueva URL para guardar datos de usuario
+
+        // --- Funciones para Protección de Contenido ---
+        const disableRightClick = (e) => {
+            e.preventDefault();
+            console.warn("Clic derecho deshabilitado para proteger el contenido.");
+        };
+
+        const disableSelection = (e) => {
+            e.preventDefault();
+            console.warn("Selección de texto deshabilitada.");
+        };
+
+        const disableMobileSpecificActions = () => {
+            document.body.style.webkitTouchCallout = 'none';
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                console.warn("Menú contextual deshabilitado.");
+            });
+
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                img.ondragstart = () => false;
+                img.oncontextmenu = () => false;
+            });
+
+            const ebookTextElements = document.querySelectorAll('#ebookContent p, #ebookContent li, #ebookContent h2, #ebookContent h3, #ebookContent h4');
+            ebookTextElements.forEach(el => {
+                el.style.webkitUserSelect = 'none';
+                el.style.mozUserSelect = 'none';
+                el.style.msUserSelect = 'none';
+                el.style.userSelect = 'none';
+            });
+        };
+
+        const handleKeyDown = (e) => {
+            if (
+                e.key === "F12" ||
+                (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) ||
+                (e.metaKey && e.altKey && (e.key === "I" || e.key === "J")) ||
+                (e.ctrlKey && e.key === "U") ||
+                (e.metaKey && e.key === "U") ||
+                (e.key === "PrintScreen") ||
+                (e.ctrlKey && e.key === "P") ||
+                (e.metaKey && e.key === "P")
+            ) {
+                e.preventDefault();
+                console.warn(`Tecla ${e.key} deshabilitada para proteger el contenido.`);
+            }
+        };
+
+        const activateContentProtection = () => {
+            document.addEventListener('contextmenu', disableRightClick);
+            document.addEventListener('selectstart', disableSelection);
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.mozUserSelect = 'none';
+            document.body.style.msUserSelect = 'none';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('keydown', handleKeyDown);
+            document.body.ondragstart = () => false;
+            disableMobileSpecificActions();
+        };
+
+        const deactivateContentProtection = () => {
+            document.removeEventListener('contextmenu', disableRightClick);
+            document.removeEventListener('selectstart', disableSelection);
+            document.body.style.webkitUserSelect = '';
+            document.body.style.mozUserSelect = '';
+            document.body.style.msUserSelect = '';
+            document.body.style.userSelect = '';
+            document.removeEventListener('keydown', handleKeyDown);
+            document.body.ondragstart = null;
+            document.body.style.webkitTouchCallout = '';
+            document.body.style.webkitUserSelect = '';
+            document.removeEventListener('contextmenu', (e) => e.preventDefault());
+        };
+
+        // --- Funciones de Navegación del Ebook ---
+        const showPage = (index, direction = 'none') => {
+            if (index < 0 || index >= ebookPages.length) return;
+
+            const prevPageIndex = currentPageIndex;
+            const prevPage = ebookPages[prevPageIndex];
+
+            if (prevPage && prevPageIndex !== index) {
+                if (direction === 'next') {
+                    prevPage.classList.add('leaving-next');
+                } else if (direction === 'prev') {
+                    prevPage.classList.add('leaving-prev');
+                }
+                prevPage.addEventListener('animationend', () => {
+                    prevPage.classList.remove('active', 'leaving-next', 'leaving-prev');
+                    prevPage.style.display = 'none';
+                }, { once: true });
+            }
+
+            currentPageIndex = index;
+            const currentPage = ebookPages[currentPageIndex];
+
+            currentPage.style.display = 'block';
+            currentPage.classList.remove('fadeInPage', 'slideInFromRight', 'slideInFromLeft');
+
+            if (direction === 'next') {
+                currentPage.classList.add('next-page');
+            } else if (direction === 'prev') {
+                currentPage.classList.add('prev-page');
+            } else {
+                currentPage.classList.add('fadeInPage');
+            }
+            currentPage.classList.add('active');
+
+            updatePaginationButtons();
+            updatePageCounter();
+            ebookContent.scrollTop = 0;
+        };
+
+        const updatePaginationButtons = () => {
+            prevPageBtn.disabled = currentPageIndex === 0;
+            nextPageBtn.disabled = currentPageIndex === ebookPages.length - 1;
+        };
+
+        const updatePageCounter = () => {
+            pageCounter.textContent = `Página ${currentPageIndex + 1} de ${ebookPages.length}`;
+        };
+
+        prevPageBtn.addEventListener('click', () => {
+            showPage(currentPageIndex - 1, 'prev');
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+            showPage(currentPageIndex + 1, 'next');
+        });
+
+        // --- Lógica para Recopilar y Enviar Datos de Usuario ---
+        const collectAndSendUserData = async (userName, userEmail, licenseKey, clientIp) => {
+            try {
+                const response = await fetch(USER_DATA_COLLECT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userName,
+                        userEmail,
+                        licenseKey,
+                        clientIp,
+                        timestamp: new Date().toISOString()
+                    }),
+                });
+
+                if (response.ok) {
+                    console.log('Datos de usuario enviados al servidor con éxito.');
+                } else {
+                    console.error('Error al enviar datos de usuario al servidor:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Fallo al conectar con el endpoint de datos de usuario:', error);
+            }
+        };
+
+
+        // --- Lógica del Acceso ---
+        accessEbookBtn.addEventListener('click', async () => {
+            const userName = userNameInput.value.trim();
+            const userEmail = userEmailInput.value.trim();
+            const licenseKey = licenseKeyInput.value.trim();
+
+            if (!userName || !userEmail || !licenseKey) {
+                showMessage('Por favor, completa todos los campos.', 'error');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(userEmail)) {
+                showMessage('Por favor, introduce un correo electrónico válido.', 'error');
+                return;
+            }
+
+            showMessage('Verificando licencia...', 'info');
+            accessEbookBtn.disabled = true;
+
+            try {
+                const response = await fetch(LICENSE_SERVER_VALIDATE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userName: userName,
+                        userEmail: userEmail,
+                        license: licenseKey
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.valid) {
+                    showMessage('Licencia validada. ¡Acceso concedido! 🎉', 'success');
+                    const glowOverlay = document.createElement('div');
+                    glowOverlay.classList.add('ebook-unlocked-overlay');
+                    document.body.appendChild(glowOverlay);
+
+                    // Recopilar y enviar datos después de la validación exitosa
+                    // La IP la obtendrá el backend al recibir la petición
+                    collectAndSendUserData(userName, userEmail, licenseKey, 'IP_RECIBIDA_EN_BACKEND');
+
+                    setTimeout(() => {
+                        accessContainer.classList.add('hidden');
+                        document.body.classList.add('ebook-active');
+                        ebookContent.classList.add('visible');
+                        showPage(0);
+                        activateContentProtection();
+                        glowOverlay.remove();
+                    }, 1000);
+
+                } else {
+                    showMessage(data.message || 'Clave de licencia inválida o ya utilizada.', 'error');
+                }
+            } catch (error) {
+                console.error('Error al conectar con el servidor de licencias:', error);
+                showMessage('Error al conectar con el servidor. Inténtalo de nuevo más tarde.', 'error');
+            } finally {
+                accessEbookBtn.disabled = false;
+            }
+        });
+
+        function showMessage(msg, type) {
+            responseMessage.textContent = msg;
+            responseMessage.className = `message ${type}`;
+            responseMessage.style.opacity = '0';
+            responseMessage.style.transform = 'translateY(10px)';
+            void responseMessage.offsetWidth; // Trigger reflow to restart animation
+            responseMessage.style.opacity = '1';
+            responseMessage.style.transform = 'translateY(0)';
+        }
+
+        // NUEVA FUNCIÓN: Health check y lógica de pantalla de carga interactiva
+        const checkServerStatus = async () => {
+            splashScreen.classList.remove('hidden');
+            accessContainer.classList.remove('show');
+            maintenanceScreen.style.display = 'none'; // Asegúrate de que la pantalla de mantenimiento esté oculta al inicio
+
+            // Mensaje 1: Cargando contenido
+            splashMessage.textContent = 'Cargando contenido...';
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simula carga de recursos
+
+            // Mensaje 2: Verificando seguridad
+            splashMessage.textContent = 'Verificando seguridad...';
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simula verificación de seguridad
+
+            // Mensaje 3: Conectando con el servidor (intento real)
+            splashMessage.textContent = 'Conectando con el servidor de licencias...';
+            console.log('Intentando conectar con el servidor de licencias...');
+
+            try {
+                const response = await fetch(HEALTH_CHECK_URL, { signal: AbortSignal.timeout(7000) }); // Timeout de 7 segundos
+
+                if (response.status === 503) { // Servidor en modo de mantenimiento
+                    console.log('Servidor en modo de mantenimiento.');
+                    splashScreen.classList.add('hidden');
+                    accessContainer.classList.add('hidden');
+                    maintenanceScreen.style.display = 'flex'; // Muestra la pantalla de mantenimiento
+                    document.title = 'Web en Mantenimiento'; // Cambia el título de la página
+                    // No reintentes automáticamente en modo mantenimiento, espera a que el usuario refresque.
+                } else if (response.ok) { // Servidor activo y no en mantenimiento
+                    console.log('Servidor de licencias activo.');
+                    splashMessage.textContent = 'Servidor conectado. ¡Bienvenido!';
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Pequeño retraso final
+                    accessContainer.classList.add('show');
+                    splashScreen.classList.add('hidden');
+                    maintenanceScreen.style.display = 'none'; // Asegúrate de que esté oculta
+                    document.title = 'Ebook - Acceso con Licencia'; // Restaura el título original
+                } else {
+                    // Si el servidor responde pero con un error (ej. 500)
+                    console.error(`Servidor respondió con estado: ${response.status}. Reintentando...`);
+                    splashMessage.textContent = `Error de conexión (${response.status}). Reintentando...`;
+                    setTimeout(checkServerStatus, 5000); // Reintenta después de 5 segundos
+                }
+            } catch (error) {
+                // Si hay un error de red o timeout
+                console.error('Fallo al conectar con el servidor de licencias:', error.message);
+                splashMessage.textContent = `Fallo de conexión. Reintentando...`;
+                setTimeout(checkServerStatus, 5000); // Reintenta después de 5 segundos
+            }
+        };
+
+        // Inicia el proceso cuando el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', checkServerStatus);
+
+    </script>
+</body>
+</html>tml>
