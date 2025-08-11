@@ -7,13 +7,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ebookContainer = document.getElementById('ebook-container');
     const licenseFormContainer = document.getElementById('license-form-container');
 
-    // **IMPORTANTE**: Reemplaza esta URL con la URL REAL de tu servicio de licencias en OnRender.
     const LICENSE_SERVER_URL = 'https://mi-ebook-licencias-api.onrender.com/validate-and-register-license'; // Asegúrate de que esta URL sea la correcta para la validación
 
-    // **NUEVAS REFERENCIAS A LOS INPUTS**
     const userNameInput = document.getElementById('user-name-input');
     const userEmailInput = document.getElementById('user-email-input');
-    // **********************************
+
+    // --- Nuevas Referencias para el Ebook ---
+    const ebookContentWrapper = document.getElementById('ebook-content-wrapper');
+    const tocList = document.getElementById('toc-list');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const progressBar = document.getElementById('progress-bar');
+
 
     // Función para mostrar mensajes
     const showMessage = (msg, type = 'error') => {
@@ -25,7 +29,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const showEbook = () => {
         licenseFormContainer.classList.add('hidden');
         ebookContainer.classList.remove('hidden');
+        ebookContainer.classList.add('show'); // Añadir clase 'show' para la animación
         showMessage('¡Licencia válida! Disfruta de tu Ebook.', 'success');
+
+        // *** Inicializar las nuevas funcionalidades del Ebook ***
+        initializeEbookFeatures();
     };
 
     // Función para validar la licencia
@@ -35,7 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             return false;
         }
 
-        // **AHORA OBTENEMOS LOS VALORES DE LOS NUEVOS INPUTS**
         const userName = userNameInput.value.trim();
         const userEmail = userEmailInput.value.trim();
 
@@ -43,7 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             showMessage('Por favor, rellena tu nombre y email.');
             return false;
         }
-        // ***************************************************
 
         try {
             const response = await fetch(LICENSE_SERVER_URL, {
@@ -52,26 +58,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    licenseKey: license,
-                    userName: userName, // AHORA ESTO VIENE DEL INPUT
-                    userEmail: userEmail // AHORA ESTO VIENE DEL INPUT
+                    license: license,
+                    userName: userName,
+                    userEmail: userEmail
                 })
             });
 
             const data = await response.json();
 
-            if (response.ok && data.success) {
+            if (response.ok && data.valid) {
                 localStorage.setItem('ebook_license', license);
-                // Opcional: También guardar userName y userEmail si necesitas revalidar automáticamente más tarde
-                // localStorage.setItem('ebook_userName', userName);
-                // localStorage.setItem('ebook_userEmail', userEmail);
+                localStorage.setItem('ebook_userName', userName);
+                localStorage.setItem('ebook_userEmail', userEmail);
                 showEbook();
                 return true;
             } else {
                 showMessage(data.message || 'Licencia inválida. Inténtalo de nuevo.');
                 localStorage.removeItem('ebook_license');
-                // localStorage.removeItem('ebook_userName');
-                // localStorage.removeItem('ebook_userEmail');
+                localStorage.removeItem('ebook_userName');
+                localStorage.removeItem('ebook_userEmail');
                 return false;
             }
         } catch (error) {
@@ -95,21 +100,132 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // **IMPORTANTE**: Lógica para auto-validar al cargar la página
-    // Si quieres que el ebook se muestre automáticamente si ya hay una licencia en localStorage,
-    // y dado que ahora necesitas userName y userEmail, tienes dos opciones:
-    // 1. Guardar también userName y userEmail en localStorage cuando la licencia es válida.
-    // 2. Pedir al usuario que los ingrese de nuevo cada vez que acceda, aunque la licencia esté guardada.
-
+    // Lógica para auto-validar al cargar la página
     const storedLicense = localStorage.getItem('ebook_license');
-    // Para simplificar por ahora, vamos a auto-validar si existe una licencia guardada,
-    // pero el usuario deberá reingresar su nombre/email si no los guardas también.
-    // Una implementación más robusta guardaría también el nombre/email.
-    if (storedLicense) {
-        licenseInput.value = storedLicense; // Precarga la licencia guardada
-        // Aquí no llamamos a validateLicense automáticamente, ya que requeriría nombre/email.
-        // El usuario deberá presionar "Validar Licencia" con los campos rellenos.
-        // Si necesitas auto-validación completa, tendrías que guardar más datos en localStorage
-        // y pasarlos a validateLicense aquí.
+    const storedUserName = localStorage.getItem('ebook_userName');
+    const storedUserEmail = localStorage.getItem('ebook_userEmail');
+
+    if (storedLicense && storedUserName && storedUserEmail) {
+        licenseInput.value = storedLicense;
+        userNameInput.value = storedUserName;
+        userEmailInput.value = storedUserEmail;
+        validateLicense(storedLicense); // Intenta auto-validar
+    }
+
+
+    // --- FUNCIONES PARA LAS NUEVAS CARACTERÍSTICAS DEL EBOOK ---
+
+    function initializeEbookFeatures() {
+        generateTableOfContents();
+        setupFullScreen();
+        setupReadingProgressBar();
+    }
+
+    /**
+     * Genera el índice de contenidos dinámicamente.
+     */
+    function generateTableOfContents() {
+        const ebookContent = document.getElementById('ebook-content');
+        const headings = ebookContent.querySelectorAll('h1[id], h2[id], h3[id]'); // Selecciona h1, h2, h3 con IDs
+
+        if (!headings.length) {
+            console.warn("No se encontraron encabezados con IDs para generar el índice.");
+            return;
+        }
+
+        headings.forEach(heading => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = `#${heading.id}`;
+            a.textContent = heading.textContent;
+
+            // Añadir clase para indentación y estilo
+            if (heading.tagName === 'H1') {
+                li.classList.add('h1-level');
+            } else if (heading.tagName === 'H2') {
+                li.classList.add('h2-level');
+            } else if (heading.tagName === 'H3') {
+                li.classList.add('h3-level');
+            }
+
+            li.appendChild(a);
+            tocList.appendChild(li);
+
+            // Smooth scroll al hacer clic en el índice
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById(heading.id).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    }
+
+    /**
+     * Configura el botón de pantalla completa.
+     */
+    function setupFullScreen() {
+        const htmlElement = document.documentElement; // Elemento para poner en pantalla completa (todo el documento)
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                // Entrar en modo pantalla completa
+                htmlElement.requestFullscreen().then(() => {
+                    document.body.classList.add('fullscreen');
+                    fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>'; // Cambiar icono a "salir"
+                    fullscreenBtn.title = "Salir de Pantalla Completa";
+                }).catch(err => {
+                    console.error(`Error al intentar entrar en pantalla completa: ${err.message} (${err.name})`);
+                    showMessage('No se pudo activar el modo pantalla completa.', 'error');
+                });
+            } else {
+                // Salir del modo pantalla completa
+                document.exitFullscreen().then(() => {
+                    document.body.classList.remove('fullscreen');
+                    fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>'; // Cambiar icono a "entrar"
+                    fullscreenBtn.title = "Pantalla Completa";
+                }).catch(err => {
+                    console.error(`Error al intentar salir de pantalla completa: ${err.message} (${err.name})`);
+                });
+            }
+        });
+
+        // Actualizar el botón si el usuario sale con ESC o por otros medios
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                document.body.classList.remove('fullscreen');
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                fullscreenBtn.title = "Pantalla Completa";
+            }
+        });
+    }
+
+    /**
+     * Configura la barra de progreso de lectura.
+     */
+    function setupReadingProgressBar() {
+        if (!ebookContentWrapper || !progressBar) {
+            console.warn("Elementos de barra de progreso no encontrados.");
+            return;
+        }
+
+        ebookContentWrapper.addEventListener('scroll', () => {
+            const scrollTop = ebookContentWrapper.scrollTop;
+            const scrollHeight = ebookContentWrapper.scrollHeight;
+            const clientHeight = ebookContentWrapper.clientHeight;
+
+            // Calcula el porcentaje de desplazamiento
+            let scrollPercentage = 0;
+            if (scrollHeight > clientHeight) { // Evita división por cero si no hay scroll
+                scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
+            }
+            // Asegura que el porcentaje esté entre 0 y 100
+            scrollPercentage = Math.max(0, Math.min(100, scrollPercentage));
+
+            progressBar.style.width = `${scrollPercentage}%`;
+        });
+
+        // Asegurarse de que el cálculo se haga también al cargar (en caso de que el contenido ya sea desplazable)
+        ebookContentWrapper.dispatchEvent(new Event('scroll'));
     }
 });

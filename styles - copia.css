@@ -1,0 +1,531 @@
+/* styles.css */
+
+/* Variables de color (mantendremos tus colores base) */
+:root {
+    --primary-color: #4A729E; /* Azul principal del logo */
+    --primary-dark: #375F8A; /* Un tono más oscuro del azul principal */
+    --secondary-color: #7091B8; /* Azul claro/secundario del texto "EVA VIDAL" */
+    --text-dark-gray: #444444; /* Gris oscuro del texto "Eva Vidal" */
+    --danger-color: #dc3545; /* Rojo para errores */
+    --success-color: #28a745; /* Verde para éxito */
+
+    /* Nuevas variables para Glassmorphism */
+    --glass-bg-color: rgba(255, 255, 255, 0.15); /* Fondo blanco semitransparente */
+    --glass-border-color: rgba(255, 255, 255, 0.2); /* Borde blanco semitransparente */
+    --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    --glass-backdrop-filter: blur(10px) saturate(180%); /* Efecto borroso y de saturación */
+}
+
+body {
+    font-family: 'Inter', sans-serif; /* Más moderno para el cuerpo */
+    line-height: 1.7;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Fondo para el efecto Glassmorphism */
+    background: linear-gradient(135deg, #a8c0ff, #3f2b96); /* Un degradado azul/morado de ejemplo */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Mantiene el fondo fijo al hacer scroll */
+
+    display: flex; /* Para centrar los contenedores */
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Ocupa al menos el 100% del alto de la ventana */
+    overflow: hidden; /* Evita scroll en body si los elementos están centrados */
+}
+
+/* ------------------------------------------- */
+/* ESTILOS DE PANTALLAS INICIALES (GLASSMORHPISM) */
+/* ------------------------------------------- */
+
+/* Contenedor principal para splash y acceso, para centrado flexible */
+#splash-screen,
+#access-container,
+#maintenance-screen {
+    position: fixed; /* Para que ocupen toda la pantalla */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Asegura que estén por encima de todo */
+    background-color: rgba(0, 0, 0, 0.3); /* Fondo semitransparente para el overlay */
+}
+
+/* Estilo Glassmorphism para las tarjetas/contenedores */
+#splash-screen .spinner-container, /* Si el spinner está dentro de un contenedor */
+#splash-screen p,
+#maintenance-screen .container,
+#license-form-container {
+    background: var(--glass-bg-color); /* Fondo semitransparente */
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: var(--glass-backdrop-filter);
+    -webkit-backdrop-filter: var(--glass-backdrop-filter); /* Soporte para Safari */
+    border: 1px solid var(--glass-border-color); /* Borde sutil */
+    padding: 30px 40px; /* Aumenta el padding para mejor espaciado */
+    text-align: center;
+    color: #fff; /* Texto blanco para mejor contraste con el fondo oscuro */
+    max-width: 450px; /* Ancho máximo para el formulario/splash */
+    margin: 20px; /* Margen para evitar que toque los bordes en móviles */
+    display: flex; /* Para organizar contenido interno */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#splash-screen p,
+#maintenance-screen .message,
+#maintenance-screen p,
+#access-container h1,
+#access-container p {
+    color: #fff; /* Asegura que el texto dentro del glassmorphism sea blanco */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Sombra para el texto */
+}
+
+/* Spinner de carga */
+.spinner {
+    border: 8px solid rgba(255, 255, 255, 0.3);
+    border-top: 8px solid #fff;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#splash-message {
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+/* Estilos para la pantalla de mantenimiento */
+#maintenance-screen .emoji-large {
+    font-size: 5em; /* Emoji más grande */
+    margin-bottom: 20px;
+}
+
+#maintenance-screen .message {
+    font-size: 1.8em;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#maintenance-screen .warning-emoji {
+    font-size: 1.2em;
+}
+
+#maintenance-screen p {
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+/* Estilos para el formulario de acceso (Glassmorphism) */
+.license-form-card {
+    padding: 40px 50px; /* Aumentar el padding para el formulario */
+    box-sizing: border-box; /* Incluir padding en el ancho/alto */
+}
+
+.logo-placeholder .logo {
+    max-width: 150px; /* Tamaño del logo */
+    height: auto;
+    margin-bottom: 25px;
+    border-radius: 50%; /* Si quieres que el logo sea circular */
+    box-shadow: 0 0 15px rgba(0,0,0,0.2); /* Sombra para el logo */
+}
+
+.license-form-card h1 {
+    font-size: 2.2em;
+    margin-bottom: 10px;
+    color: #fff; /* Texto blanco */
+}
+
+.license-form-card p {
+    font-size: 1.1em;
+    margin-bottom: 30px;
+    color: rgba(255, 255, 255, 0.9); /* Texto blanco semitransparente */
+}
+
+.input-group {
+    margin-bottom: 20px;
+    width: 100%; /* Ocupa todo el ancho disponible en la tarjeta */
+    text-align: left; /* Alinea etiquetas a la izquierda */
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #fff; /* Etiquetas blancas */
+}
+
+.input-group input[type="text"],
+.input-group input[type="email"] {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Borde claro */
+    border-radius: 10px; /* Bordes más redondeados */
+    background-color: rgba(255, 255, 255, 0.1); /* Fondo del input semitransparente */
+    color: #fff; /* Texto del input blanco */
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+    box-sizing: border-box; /* Asegura que el padding no afecte el width */
+}
+
+.input-group input[type="text"]::placeholder,
+.input-group input[type="email"]::placeholder {
+    color: rgba(255, 255, 255, 0.7); /* Placeholder más claro */
+}
+
+.input-group input[type="text"]:focus,
+.input-group input[type="email"]:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3); /* Resplandor al enfocar */
+}
+
+#validate-license-btn {
+    padding: 15px 35px;
+    background-color: var(--primary-color); /* Usa tu color primario */
+    color: white;
+    border: none;
+    border-radius: 10px; /* Más redondeado */
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 100%; /* Ocupa todo el ancho */
+    max-width: 300px; /* Ancho máximo para el botón */
+    margin-top: 20px;
+}
+
+#validate-license-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px); /* Pequeño efecto 3D */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.message {
+    font-weight: bold;
+    margin-top: 20px;
+    font-size: 1em;
+    color: #fff; /* Mensajes blancos */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Sombra para el texto de mensaje */
+}
+
+.message.error {
+    color: var(--danger-color);
+}
+
+.message.success {
+    color: var(--success-color);
+}
+
+/* ------------------------------------------- */
+/* ESTILOS DEL EBOOK (DESPUÉS DEL LOGIN) */
+/* ------------------------------------------- */
+
+#ebook-container {
+    max-width: 900px; /* Ligeramente más ancho */
+    margin: 30px auto;
+    padding: 30px;
+    background-color: #ffffff; /* El contenido del ebook se mantiene sólido */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column; /* Cambiado a columna para el header y la barra de progreso */
+    min-height: calc(100vh - 60px); /* Altura mínima para que se vea bien */
+    overflow: hidden; /* Importante para que el contenido no se salga */
+}
+
+/* Ocultar elementos */
+.hidden {
+    display: none !important;
+}
+
+/* Mostrar con animación */
+.show {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* Estilos de encabezados del ebook */
+h1, h2, h3 {
+    font-family: 'Poppins', sans-serif; /* Títulos con Poppins */
+    color: var(--primary-dark); /* Color de tus títulos */
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+    line-height: 1.3;
+}
+
+h1 { font-size: 2.8em; font-weight: 700; }
+h2 { font-size: 2.2em; font-weight: 600; }
+h3 { font-size: 1.8em; font-weight: 600; }
+
+p {
+    font-size: 1.1em;
+    line-height: 1.8;
+    margin-bottom: 1.2em;
+    color: #555;
+}
+
+/* Botón de Pantalla Completa */
+#ebook-header {
+    display: flex;
+    justify-content: flex-end; /* Alinea el botón a la derecha */
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+#fullscreen-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#fullscreen-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Barra de Progreso */
+#progress-container {
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden; /* Para asegurar que la barra interior no se desborde */
+}
+
+#progress-bar {
+    height: 100%;
+    width: 0%; /* Se actualiza con JavaScript */
+    background-color: var(--primary-color); /* Color principal */
+    border-radius: 4px;
+    transition: width 0.2s ease-out; /* Transición suave para el progreso */
+}
+
+/* Layout del Ebook: Índice + Contenido */
+#main-ebook-layout {
+    display: flex;
+    gap: 30px; /* Espacio entre el índice y el contenido */
+}
+
+/* Índice (Tabla de Contenidos - TOC) */
+#toc-container {
+    flex-shrink: 0; /* No se encoge */
+    width: 250px; /* Ancho fijo para el índice */
+    padding-right: 20px; /* Espacio a la derecha */
+    border-right: 1px solid #eee;
+    position: sticky; /* Se mantiene en su lugar al hacer scroll */
+    top: 30px; /* Distancia desde la parte superior */
+    height: fit-content; /* Altura se ajusta al contenido */
+    max-height: calc(100vh - 100px); /* Altura máxima, dejando espacio */
+    overflow-y: auto; /* Scroll si el índice es muy largo */
+}
+
+#toc-container h3 {
+    font-size: 1.5em;
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+#toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#toc-list li {
+    margin-bottom: 8px;
+}
+
+#toc-list a {
+    text-decoration: none;
+    color: var(--text-dark-gray);
+    font-size: 0.95em;
+    transition: color 0.2s ease, font-weight 0.2s ease;
+    display: block; /* Para que el padding se aplique a toda la línea */
+    padding: 5px 0;
+}
+
+#toc-list a:hover {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Resaltar la sección activa en el índice */
+#toc-list a.active {
+    color: var(--primary-dark);
+    font-weight: 600;
+    background-color: #f0f8ff; /* Fondo sutil para el elemento activo */
+    border-left: 3px solid var(--primary-color);
+    padding-left: 5px;
+}
+
+/* Estilos para los diferentes niveles del índice */
+#toc-list li.level-1 > a { font-size: 1.1em; font-weight: 600; margin-top: 10px; }
+#toc-list li.level-2 > a { font-size: 1em; margin-left: 15px; }
+#toc-list li.level-3 > a { font-size: 0.9em; margin-left: 30px; }
+
+
+/* Contenedor del contenido principal */
+#ebook-content-wrapper {
+    flex-grow: 1; /* Ocupa el espacio restante */
+    max-width: calc(100% - 280px); /* Ajusta si cambias el ancho de toc-container */
+    overflow-x: hidden; /* Previene scroll horizontal si hay contenido muy ancho */
+}
+
+#ebook-content {
+    /* Permitir selección de texto dentro del contenido del ebook */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    cursor: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    body {
+        min-height: 100vh; /* Asegura que la pantalla de carga/acceso siempre ocupe toda la altura */
+        display: block; /* Vuelve a block para el scroll normal en pantallas pequeñas */
+        padding: 0;
+    }
+
+    #splash-screen,
+    #access-container,
+    #maintenance-screen {
+        position: absolute; /* Cambia a absolute para permitir scroll si el contenido es grande */
+        height: auto;
+        min-height: 100vh; /* Asegura que cubran al menos 100vh */
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    #license-form-container,
+    #splash-screen p,
+    #maintenance-screen .container {
+        max-width: 90%; /* Más ancho en móviles */
+        padding: 25px 30px;
+    }
+
+    .license-form-card h1 {
+        font-size: 1.8em;
+    }
+
+    .license-form-card p {
+        font-size: 1em;
+    }
+
+    .input-group input {
+        padding: 12px 15px;
+        font-size: 1em;
+    }
+
+    #validate-license-btn {
+        font-size: 1em;
+        padding: 12px 25px;
+    }
+
+    #ebook-container {
+        margin: 15px;
+        padding: 20px;
+    }
+
+    #main-ebook-layout {
+        flex-direction: column; /* Apila el índice y el contenido */
+        gap: 20px;
+    }
+
+    #toc-container {
+        width: 100%; /* Ocupa todo el ancho */
+        border-right: none; /* Elimina el borde derecho */
+        border-bottom: 1px solid #eee; /* Añade un borde inferior */
+        padding-right: 0;
+        position: static; /* Ya no es sticky en móviles */
+        max-height: none; /* Altura sin restricciones */
+        overflow-y: visible; /* No hay scroll en el índice */
+    }
+
+    #ebook-content-wrapper {
+        max-width: 100%; /* Ocupa todo el ancho */
+    }
+
+    h1 { font-size: 2.2em; }
+    h2 { font-size: 1.8em; }
+    h3 { font-size: 1.5em; }
+    p { font-size: 1em; }
+}
+
+/* Estilos de impresión para ocultar elementos no necesarios */
+@media print {
+    body {
+        background: none;
+        display: block;
+        margin: 0;
+        padding: 0;
+    }
+    #splash-screen, #access-container, #maintenance-screen,
+    #ebook-header, #progress-container, #toc-container, #fullscreen-btn {
+        display: none !important;
+    }
+    #ebook-container {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border-radius: 0;
+        background-color: transparent;
+        display: block;
+        min-height: auto;
+    }
+    #main-ebook-layout {
+        display: block;
+    }
+    #ebook-content-wrapper {
+        max-width: none;
+    }
+    #ebook-content {
+        user-select: text !important;
+        cursor: auto !important;
+        /* Asegúrate de que el texto sea negro para la impresión */
+        color: #000;
+    }
+    h1, h2, h3, p {
+        color: #000 !important;
+    }
+}
